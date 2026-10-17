@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored Hairline UI components (MIT), kept as published so they can be updated from the registry.
+    "src/components/hairline/**",
   ]),
 ]);
 

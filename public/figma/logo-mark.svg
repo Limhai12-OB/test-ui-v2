@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Mark">
+<rect width="32" height="32" rx="9" fill="#1D33BA"/>
+<path id="Flow" d="M8 21L13 15.5L17.5 19L24 10.5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+<circle id="Node" cx="24" cy="10.5" r="2.8" fill="white"/>
+<path id="Base" d="M8 24.5H24" stroke-width="2" stroke-linecap="round" stroke="white"/>
+</g>
+</svg>

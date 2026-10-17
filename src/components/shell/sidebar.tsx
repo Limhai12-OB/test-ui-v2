@@ -1,0 +1,270 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { ChevronsUpDown, Ellipsis, Lock, LogOut, PanelLeftClose, PanelLeftOpen, UserRound, X } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
+import { Logo } from "@/components/ui/logo";
+import { Menu } from "@/components/ui/menu";
+import { cn } from "@/lib/format";
+import { initials, useSession, type SessionUser } from "@/lib/session";
+import { groupsForRole, SETTINGS_ITEM, type NavItem } from "./nav";
+
+/** Count badges next to nav items: open sign-offs (owner, sections 06/10) and tasks (Branch Manager, 05.3). */
+const BADGES: Record<"owner" | "manager", Record<string, number>> = {
+  owner: { "/financial-records": 3 },
+  manager: { "/financial-records": 2 },
+};
+
+/**
+ * Figma component "Sidebar" (256px, Expanded). `collapsed` gives the 72px
+ * icon rail used on laptops; `onClose` turns it into the tablet/phone drawer.
+ */
+export function Sidebar({
+  collapsed = false,
+  onToggleCollapse,
+  onClose,
+}: {
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+  onClose?: () => void;
+}) {
+  const { user, signOut } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+  if (!user) return null;
+
+  const groups = groupsForRole(user.role);
+  const badges = user.firstRun ? {} : BADGES[user.role];
+
+  return (
+    <nav
+      aria-label="Main"
+      className={cn(
+        "flex h-full flex-col bg-surface",
+        onClose && "border-r border-line",
+        collapsed ? "w-[72px]" : "w-64",
+      )}
+    >
+      <div className={cn("flex h-16 shrink-0 items-center", collapsed ? "justify-center px-3" : "justify-between px-5")}>
+        <Link href="/dashboard" aria-label="FinanceSight dashboard" className="focus-ring rounded-md" onClick={onClose}>
+          <Logo showText={!collapsed} />
+        </Link>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="focus-ring inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-icon hover:bg-muted-bg"
+          >
+            <X size={18} aria-hidden />
+          </button>
+        ) : (
+          !collapsed &&
+          onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+              className="focus-ring inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-icon hover:bg-muted-bg"
+            >
+              <PanelLeftClose size={16} aria-hidden />
+            </button>
+          )
+        )}
+      </div>
+
+      {collapsed && onToggleCollapse && (
+        <div className="flex justify-center pb-2">
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+            className="focus-ring inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-icon hover:bg-muted-bg"
+          >
+            <PanelLeftOpen size={16} aria-hidden />
+          </button>
+        </div>
+      )}
+
+      <div className={cn("shrink-0 pt-1 pb-3", collapsed ? "px-3" : "px-4")}>
+        <BusinessSwitcher user={user} collapsed={collapsed} />
+      </div>
+
+      <div className={cn("flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4", collapsed ? "px-3" : "px-4")}>
+        {groups.map((group) => (
+          <div key={group.label} className="flex flex-col gap-0.5">
+            {collapsed ? (
+              <span className="mx-auto mb-1 h-px w-6 bg-line" aria-hidden />
+            ) : (
+              <p className="text-overline flex items-center gap-1.5 px-3 pb-1 text-muted">
+                {group.label}
+                {group.locked && <Lock size={12} aria-hidden />}
+              </p>
+            )}
+            {group.items.map((item) => (
+              <NavLink
+                key={item.href}
+                item={item}
+                active={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                collapsed={collapsed}
+                locked={group.locked}
+                badge={badges[item.href]}
+                onNavigate={onClose}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div className={cn("flex shrink-0 flex-col gap-2 border-t border-line py-3", collapsed ? "px-3" : "px-4")}>
+        <NavLink item={SETTINGS_ITEM} active={pathname === SETTINGS_ITEM.href || pathname.startsWith(`${SETTINGS_ITEM.href}/`)} collapsed={collapsed} onNavigate={onClose} />
+        <div className={cn("flex items-center gap-2.5 rounded-md py-2", collapsed ? "justify-center" : "px-3")}>
+          {!collapsed && (
+            <>
+              <Avatar initials={initials(user.name)} />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <p className="truncate text-[13px] leading-[18px] font-medium text-fg">{user.name}</p>
+                <p className="truncate text-xs leading-4 text-muted">{roleLabel(user)}</p>
+              </div>
+            </>
+          )}
+          <Menu
+            align={collapsed ? "start" : "end"}
+            triggerLabel="Account menu"
+            triggerClassName="inline-flex size-8 items-center justify-center rounded-md text-icon hover:bg-muted-bg"
+            trigger={collapsed ? <Avatar initials={initials(user.name)} /> : <Ellipsis size={16} aria-hidden />}
+            items={[
+              {
+                id: "profile",
+                label: "My profile",
+                icon: <UserRound size={16} className="text-icon" aria-hidden />,
+                onSelect: () => router.push("/settings"),
+              },
+              {
+                id: "sign-out",
+                label: "Sign out",
+                icon: <LogOut size={16} className="text-icon" aria-hidden />,
+                onSelect: () => {
+                  signOut();
+                  router.push("/sign-in");
+                },
+              },
+            ]}
+          />
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+export function roleLabel(user: SessionUser) {
+  return user.role === "owner" ? "Business Owner" : "Branch Manager";
+}
+
+function NavLink({
+  item,
+  active,
+  collapsed,
+  locked,
+  badge,
+  onNavigate,
+}: {
+  item: NavItem;
+  active: boolean;
+  collapsed: boolean;
+  locked?: boolean;
+  badge?: number;
+  onNavigate?: () => void;
+}) {
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      title={collapsed ? (locked ? `${item.label} (owner only)` : item.label) : undefined}
+      className={cn(
+        "focus-ring relative flex h-10 shrink-0 items-center gap-3 rounded-md text-sm leading-5 font-medium transition-colors",
+        collapsed ? "justify-center px-0" : "px-3",
+        active ? "bg-primary-subtle text-brand" : "text-body hover:bg-muted-bg",
+        locked && "text-muted",
+      )}
+    >
+      <Icon size={20} strokeWidth={1.75} className={active ? "text-brand" : "text-icon"} aria-hidden />
+      {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+      {!collapsed && badge !== undefined && (
+        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted-bg px-1.5 text-xs leading-4 font-medium text-body">
+          {badge}
+          <span className="sr-only"> open tasks</span>
+        </span>
+      )}
+      {collapsed && badge !== undefined && (
+        <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" aria-label={`${badge} open tasks`} />
+      )}
+      {!collapsed && locked && <Lock size={14} className="text-icon" aria-label="Owner only" />}
+    </Link>
+  );
+}
+
+function BusinessSwitcher({ user, collapsed }: { user: SessionUser; collapsed: boolean }) {
+  const isManager = user.role === "manager";
+  const subtitle = isManager
+    ? `${user.branch} Branch`
+    : user.firstRun
+      ? "Central Market (Main)"
+      : "All branches · 4";
+
+  const avatar = (
+    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-secondary-strong text-[13px] leading-[18px] font-medium text-white">
+      {initials(user.businessName)}
+    </span>
+  );
+
+  if (collapsed) {
+    return (
+      <div className="flex justify-center" title={`${user.businessName} · ${subtitle}`}>
+        {avatar}
+      </div>
+    );
+  }
+
+  const body = (
+    <>
+      {avatar}
+      <span className="flex min-w-0 flex-1 flex-col text-left">
+        <span className="truncate text-[13px] leading-[18px] font-medium text-fg">{user.businessName}</span>
+        <span className="truncate text-xs leading-4 text-muted">{subtitle}</span>
+      </span>
+    </>
+  );
+
+  if (isManager) {
+    return (
+      <div
+        className="flex items-center gap-2.5 rounded-[10px] border border-line bg-subtle p-2.5"
+        title="Your access is limited to this branch"
+      >
+        {body}
+        <Lock size={16} className="shrink-0 text-icon" aria-label="Branch access is fixed" />
+      </div>
+    );
+  }
+
+  return (
+    <Menu
+      width={224}
+      triggerLabel="Switch business"
+      triggerClassName="flex w-full items-center gap-2.5 rounded-[10px] border border-line bg-surface p-2.5 hover:bg-subtle"
+      trigger={
+        <>
+          {body}
+          <ChevronsUpDown size={16} className="shrink-0 text-icon" aria-hidden />
+        </>
+      }
+      items={[{ id: "current", label: user.businessName, description: "Your only business", selected: true }]}
+    />
+  );
+}

@@ -1,26 +1,524 @@
 @import "tailwindcss";
 
+/* Dark mode follows the `dark` class on <html> (set by the theme toggle, see theme-script). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * LuyFlow / FinanceSight design tokens, copied from the Figma variables
+ * (collection "lf"). Names match Figma so a token can be traced back to the file.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --lf-primary-default: #1d33ba;
+  --lf-primary-hover: #182a9c;
+  --lf-primary-subtle: #eef1fd;
+  --lf-secondary-strong: #0f766e;
+
+  --lf-text-primary: #111827;
+  --lf-text-body: #334155;
+  --lf-text-secondary: #64748b;
+  --lf-text-placeholder: #64748b;
+  --lf-text-brand: #1d33ba;
+  --lf-text-on-primary: #ffffff;
+  --lf-text-inverse: #ffffff;
+  --lf-text-success: #166534;
+  --lf-text-error: #b91c1c;
+  --lf-text-warning: #92400e;
+
+  --lf-icon-default: #64748b;
+  --lf-icon-subtle: #8792a6;
+  --lf-icon-strong: #334155;
+  --lf-icon-primary: #1d33ba;
+  --lf-icon-on-primary: #ffffff;
+  --lf-icon-success: #16a34a;
+  --lf-icon-error: #dc2626;
+  --lf-icon-warning: #d97706;
+  --lf-icon-ai: #7c3aed;
+
+  --lf-bg-canvas: #f8fafc;
+  --lf-bg-surface: #ffffff;
+  --lf-bg-subtle: #f8fafc;
+  --lf-bg-muted: #f1f5f9;
+  --lf-bg-inverse: #111827;
+
+  --lf-border-default: #e2e8f0;
+  --lf-border-strong: #cbd5e1;
+  --lf-border-subtle: #f1f5f9;
+  --lf-neutral-border: #e2e8f0;
+  --lf-neutral-subtle: #f1f5f9;
+
+  --lf-success-default: #16a34a;
+  --lf-success-subtle: #f0fdf4;
+  --lf-error-default: #dc2626;
+  --lf-error-subtle: #fef2f2;
+  --lf-warning-default: #f59e0b;
+  --lf-warning-subtle: #fffbeb;
+
+  /* Not in the exported variables; sampled from the "uncategorised" task tile in frame 05.3. */
+  --lf-info-subtle: #eff6ff;
+  --lf-icon-info: #0284c7;
+  --lf-text-info: #0369a1;
+  /* AI accent surfaces, sampled from the AI chips and notes in sections 06 and 10. */
+  --lf-ai-subtle: #f5f3ff;
+  --lf-text-ai: #6d28d9;
+
+  --lf-chart-revenue: #1d33ba;
+  --lf-chart-expense: #ea580c;
+  --lf-chart-grid: #f1f5f9;
+  --lf-chart-axis: #cbd5e1;
+  --lf-chart-cat-1: #1d33ba;
+
+  --lf-radius-xs: 4px;
+  --lf-radius-sm: 6px;
+  --lf-radius-md: 8px;
+  --lf-radius-lg: 12px;
+  --lf-radius-full: 999px;
+
+  /* Elevation/XS and Elevation/MD */
+  --lf-shadow-xs: 0 1px 2px 0 rgb(16 24 40 / 0.05);
+  --lf-shadow-md: 0 2px 4px -2px rgb(16 24 40 / 0.06), 0 4px 8px -2px rgb(16 24 40 / 0.1);
+}
+
+/*
+ * Dark theme (section 20 "Dark mode variants"). Same token names, so every
+ * screen switches without per-component overrides.
+ */
+.dark {
+  color-scheme: dark;
+  --lf-primary-default: #4258f0;
+  --lf-primary-hover: #5469f5;
+  --lf-primary-subtle: rgb(66 88 240 / 0.16);
+  --lf-secondary-strong: #2dd4bf;
+
+  --lf-text-primary: #f1f5f9;
+  --lf-text-body: #cbd5e1;
+  --lf-text-secondary: #94a3b8;
+  --lf-text-placeholder: #7c8aa0;
+  --lf-text-brand: #9aabff;
+  --lf-text-success: #4ade80;
+  --lf-text-error: #f87171;
+  --lf-text-warning: #fbbf24;
+
+  --lf-icon-default: #94a3b8;
+  --lf-icon-subtle: #64748b;
+  --lf-icon-strong: #cbd5e1;
+  --lf-icon-primary: #9aabff;
+  --lf-icon-success: #4ade80;
+  --lf-icon-error: #f87171;
+  --lf-icon-warning: #fbbf24;
+  --lf-icon-ai: #a78bfa;
+
+  --lf-bg-canvas: #0b1120;
+  --lf-bg-surface: #111a2e;
+  --lf-bg-subtle: #0e1729;
+  --lf-bg-muted: #1b2740;
+  --lf-bg-inverse: #334155;
+
+  --lf-border-default: #24314a;
+  --lf-border-strong: #33425f;
+  --lf-border-subtle: #1b2740;
+  --lf-neutral-border: #24314a;
+  --lf-neutral-subtle: #1b2740;
+
+  --lf-success-default: #22c55e;
+  --lf-success-subtle: rgb(34 197 94 / 0.12);
+  --lf-error-default: #ef4444;
+  --lf-error-subtle: rgb(239 68 68 / 0.13);
+  --lf-warning-default: #f59e0b;
+  --lf-warning-subtle: rgb(245 158 11 / 0.13);
+
+  --lf-info-subtle: rgb(56 189 248 / 0.12);
+  --lf-icon-info: #38bdf8;
+  --lf-text-info: #7dd3fc;
+  --lf-ai-subtle: rgb(167 139 250 / 0.13);
+  --lf-text-ai: #c4b5fd;
+
+  --lf-chart-revenue: #6378ff;
+  --lf-chart-expense: #fb923c;
+  --lf-chart-grid: #1b2740;
+  --lf-chart-axis: #33425f;
+  --lf-chart-cat-1: #6378ff;
+
+  --lf-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --lf-shadow-md: 0 2px 4px -2px rgb(0 0 0 / 0.35), 0 8px 16px -4px rgb(0 0 0 / 0.4);
+}
+
+/*
+ * Paper documents (invoice, receipt, bill previews) stay light in dark mode, like the
+ * printed page they represent: the light tokens are restored inside them.
+ */
+.dark .print-area,
+.dark .lf-paper {
+  color-scheme: light;
+  --lf-text-primary: #111827;
+  --lf-text-body: #334155;
+  --lf-text-secondary: #64748b;
+  --lf-text-brand: #1d33ba;
+  --lf-bg-surface: #ffffff;
+  --lf-bg-subtle: #f8fafc;
+  --lf-bg-muted: #f1f5f9;
+  --lf-border-default: #e2e8f0;
+  --lf-border-strong: #cbd5e1;
+  --lf-border-subtle: #f1f5f9;
+  --lf-primary-default: #1d33ba;
+  color: var(--lf-text-body);
+}
+
+/* Names the Hairline UI components read (shadcn convention), mapped onto the LuyFlow tokens. */
+:root,
+.dark {
+  --background: var(--lf-bg-surface);
+  --foreground: var(--lf-text-primary);
+  --popover: var(--lf-bg-surface);
+  --border: var(--lf-border-default);
+  --primary: var(--lf-primary-default);
+  --muted-foreground: var(--lf-text-secondary);
+  --chart-1: var(--lf-chart-revenue);
+  --chart-2: var(--lf-chart-expense);
+  --chart-3: var(--lf-icon-ai);
+  --chart-4: var(--lf-icon-info);
+  --chart-5: var(--lf-secondary-strong);
+  --muted: var(--lf-bg-muted);
+  --card: var(--lf-bg-surface);
+  --ring: var(--lf-primary-default);
+  --destructive: var(--lf-error-default);
+  --primary-foreground: #ffffff;
+  --popover-foreground: var(--lf-text-primary);
+  --accent: var(--lf-bg-muted);
+  --accent-foreground: var(--lf-text-primary);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Breakpoints from frame 20.1 "How layouts adapt": tablet 768, laptop 1280, desktop 1440 */
+  --breakpoint-md: 48rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-desktop: 90rem;
+
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-num: var(--font-mulish), ui-sans-serif, system-ui, sans-serif;
+  --font-khmer: var(--font-kantumruy), var(--font-poppins), sans-serif;
+
+  --color-primary: var(--lf-primary-default);
+  --color-primary-hover: var(--lf-primary-hover);
+  --color-primary-subtle: var(--lf-primary-subtle);
+  --color-secondary-strong: var(--lf-secondary-strong);
+
+  --color-fg: var(--lf-text-primary);
+  --color-body: var(--lf-text-body);
+  --color-muted: var(--lf-text-secondary);
+  --color-placeholder: var(--lf-text-placeholder);
+  --color-brand: var(--lf-text-brand);
+  --color-success-fg: var(--lf-text-success);
+  --color-error-fg: var(--lf-text-error);
+  --color-warning-fg: var(--lf-text-warning);
+
+  --color-icon: var(--lf-icon-default);
+  --color-icon-subtle: var(--lf-icon-subtle);
+  --color-icon-strong: var(--lf-icon-strong);
+  --color-icon-success: var(--lf-icon-success);
+  --color-icon-error: var(--lf-icon-error);
+  --color-icon-warning: var(--lf-icon-warning);
+  --color-icon-ai: var(--lf-icon-ai);
+
+  --color-canvas: var(--lf-bg-canvas);
+  --color-surface: var(--lf-bg-surface);
+  --color-subtle: var(--lf-bg-subtle);
+  --color-muted-bg: var(--lf-bg-muted);
+  --color-inverse: var(--lf-bg-inverse);
+
+  --color-line: var(--lf-border-default);
+  --color-line-strong: var(--lf-border-strong);
+  --color-line-subtle: var(--lf-border-subtle);
+
+  --color-success: var(--lf-success-default);
+  --color-success-subtle: var(--lf-success-subtle);
+  --color-error: var(--lf-error-default);
+  --color-error-subtle: var(--lf-error-subtle);
+  --color-warning: var(--lf-warning-default);
+  --color-warning-subtle: var(--lf-warning-subtle);
+  --color-info-subtle: var(--lf-info-subtle);
+  --color-icon-info: var(--lf-icon-info);
+  --color-info-fg: var(--lf-text-info);
+  --color-ai-subtle: var(--lf-ai-subtle);
+  --color-ai-fg: var(--lf-text-ai);
+
+  --color-chart-revenue: var(--lf-chart-revenue);
+  --color-chart-expense: var(--lf-chart-expense);
+  --color-chart-grid: var(--lf-chart-grid);
+  --color-chart-axis: var(--lf-chart-axis);
+
+  --radius-xs: var(--lf-radius-xs);
+  --radius-sm: var(--lf-radius-sm);
+  --radius-md: var(--lf-radius-md);
+  --radius-lg: var(--lf-radius-lg);
+
+  --shadow-xs: var(--lf-shadow-xs);
+  --shadow-md: var(--lf-shadow-md);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--lf-bg-canvas);
+  color: var(--lf-text-body);
+  font-family: var(--font-sans);
+}
+
+/* Figma text styles that are reused everywhere */
+@utility text-overline {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@utility tabular {
+  font-family: var(--font-num);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility focus-ring {
+  outline: 2px solid transparent;
+  &:focus-visible {
+    outline: 2px solid var(--lf-primary-default);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes lf-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@utility skeleton {
+  background: var(--lf-bg-muted);
+  border-radius: var(--lf-radius-sm);
+  animation: lf-pulse 1.6s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+/* 18px table checkbox matching the Figma checkbox (checked and indeterminate states). */
+@utility lf-check {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  appearance: none;
+  cursor: pointer;
+  border: 1px solid var(--lf-icon-subtle);
+  border-radius: 4px;
+  background: var(--lf-bg-surface) center / 12px 12px no-repeat;
+  vertical-align: middle;
+  &:checked {
+    border-color: var(--lf-primary-default);
+    background-color: var(--lf-primary-default);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  }
+  &:indeterminate {
+    border-color: var(--lf-primary-default);
+    background-color: var(--lf-primary-default);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+  }
+  &:focus-visible {
+    outline: 2px solid var(--lf-primary-default);
+    outline-offset: 2px;
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+/* Printing an invoice or receipt prints only the document (Export → Print / Download PDF). */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    box-shadow: none !important;
+  }
+}
+
+/* ---------- Motion ---------- */
+
+/* Keyframes the Hairline UI components rely on. */
+@keyframes ui-col-in {
+  from { max-width: 0; opacity: 0; }
+  to { max-width: 1em; opacity: 1; }
+}
+@keyframes ui-col-out {
+  from { max-width: 1em; opacity: 1; }
+  to { max-width: 0; opacity: 0; }
+}
+@keyframes ui-sheen {
+  from { mask-position: 150% 0; }
+  to { mask-position: -50% 0; }
+}
+@keyframes ui-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+  40% { transform: translateY(-3px); opacity: 1; }
+}
+@keyframes ui-breathe {
+  0%, 100% { transform: scale(0.82); opacity: 0.55; }
+  50% { transform: scale(1); opacity: 1; }
+}
+@keyframes ui-scan {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}
+@keyframes ui-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes ui-fade-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ui-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes ui-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes ui-ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+@keyframes ui-pop-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+
+@keyframes lf-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lf-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lf-pop {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lf-sheet-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes lf-slide-left {
+  from { transform: translateX(32px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes lf-toast {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lf-grow-x {
+  from { transform: scaleX(0); }
+}
+@keyframes lf-grow-y {
+  from { transform: scaleY(0); }
+}
+@keyframes lf-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes lf-donut {
+  from { stroke-dasharray: 0 999; }
+}
+@keyframes lf-draw {
+  from { stroke-dashoffset: var(--lf-len, 2000); }
+  to { stroke-dashoffset: 0; }
+}
+
+/*
+ * Every app page fades up as it opens; its sections follow one after another.
+ * `main > div` is the page wrapper (<Page> and the screens that inline it).
+ */
+@media (prefers-reduced-motion: no-preference) {
+  #main > div > * {
+    animation: lf-rise 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  #main > div > *:nth-child(2) { animation-delay: 40ms; }
+  #main > div > *:nth-child(3) { animation-delay: 80ms; }
+  #main > div > *:nth-child(4) { animation-delay: 120ms; }
+  #main > div > *:nth-child(5) { animation-delay: 160ms; }
+  #main > div > *:nth-child(n + 6) { animation-delay: 200ms; }
+
+  /* Dialogs pop in; the bottom sheet on phones slides up; drawers slide from the right. */
+  dialog[open] > div {
+    animation: lf-pop 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  dialog[open]::backdrop {
+    animation: lf-fade 200ms ease both;
+  }
+  @media (max-width: 767px) {
+    dialog[open] > div {
+      animation-name: lf-sheet-up;
+    }
+  }
+  dialog.ml-auto[open] > div {
+    animation: lf-slide-left 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  [role="menu"] {
+    animation: lf-pop 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: top;
+  }
+  .lf-toast {
+    animation: lf-toast 320ms cubic-bezier(0.34, 1.36, 0.64, 1) both;
+  }
+  /* Bars and meters grow from zero the first time they are drawn. */
+  .lf-grow-x {
+    transform-origin: left;
+    animation: lf-grow-x 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .lf-grow-y {
+    transform-origin: bottom;
+    animation: lf-grow-y 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  /* Chart lines draw in from the left (forecast horizon changes). */
+  .lf-reveal {
+    animation: lf-reveal 900ms cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+  /* Donut slices sweep in one after another. */
+  .lf-donut-arc {
+    animation: lf-donut 900ms cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+  .lf-draw {
+    stroke-dasharray: var(--lf-len, 2000);
+    animation: lf-draw 1100ms cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+}
+
+/* Cards and clickable tiles lift a little on hover. */
+@utility lift {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms ease, border-color 200ms ease;
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--lf-shadow-md);
+    }
+  }
+}
+
+/* Theme changes fade instead of snapping (the toggle disables this for the reveal). */
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+}
+
+/* Tailwind-animate class names used by a few Hairline components. */
+@utility animate-in {
+  animation: lf-pop 120ms ease both;
 }
