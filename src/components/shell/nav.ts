@@ -20,9 +20,7 @@ export type NavItem = {
   icon: LucideIcon;
   /** Hidden behind a lock for Branch Managers (frame 05.3 "Owner only"). */
   ownerOnly?: boolean;
-  /** Figma section that designs this screen, for the "not built yet" pages. */
-  figmaSection?: string;
-  /** Has its own route; excluded from the placeholder [section] page. */
+  /** Has its own route (every item does now; kept for screens added later). */
   built?: boolean;
 };
 
@@ -74,11 +72,6 @@ export const EXTRA_SECTIONS: NavItem[] = [
   { href: "/help", label: "Help", icon: Settings, built: true },
   { href: "/scan", label: "Scan receipt", icon: Settings, built: true },
 ];
-
-export function findNavItem(slug: string): NavItem | undefined {
-  const all = [...NAV_GROUPS.flatMap((group) => group.items), SETTINGS_ITEM, ...EXTRA_SECTIONS];
-  return all.find((item) => item.href === `/${slug}`);
-}
 
 /** Sidebar order for a role: Branch Managers get owner-only items in a locked group at the end. */
 export function groupsForRole(role: "owner" | "manager"): (NavGroup & { locked?: boolean })[] {
