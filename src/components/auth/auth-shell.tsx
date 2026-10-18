@@ -1,23 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Globe, ShieldCheck } from "lucide-react";
+import { ChevronDown, Globe } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { Menu } from "@/components/ui/menu";
-
-const FEATURES = [
-  "Track USD and KHR side by side",
-  "Reconcile ABA, ACLEDA and Wing statements",
-  "Forecast cash flow with clear reliability",
-];
+import { AuthShowcase } from "./auth-showcase";
 
 const DEFAULT_LEAD =
-  "Sales, bills, bank statements and stock in one place, with an AI advisor that explains the numbers in Khmer or English.";
+  "Track sales, bills, bank statements and cash flow in one place, with AI insights that turn your numbers into clear next steps.";
 
 /**
- * Two-column auth layout from section 04 (1440×900): a 600px brand panel on
- * the left and a 400px form column centred in the remaining space. Below
- * 1024px the panel is dropped and the logo moves above the form (frame 18.1).
+ * Two-column auth layout: a full-height blue panel on the left with a
+ * floating dashboard preview, headline and lead, and the form on the right.
+ * Below 1024px the panel is dropped and only the form remains (frame 18.1).
  */
 export function AuthShell({
   headline,
@@ -30,31 +25,44 @@ export function AuthShell({
 }) {
   return (
     <div className="flex min-h-dvh bg-surface">
-      <aside className="relative hidden w-[41.667%] max-w-[600px] shrink-0 flex-col bg-primary px-14 pt-16 pb-14 text-white lg:flex">
-        <Logo inverse className="ml-3" />
-        <div className="my-auto flex max-w-[500px] flex-col">
-          <h2 className="text-4xl leading-[44px] font-semibold tracking-[-0.5px]">{headline}</h2>
-          <p className="mt-6 text-base leading-[26px] text-white/90">{lead}</p>
-          <ul className="mt-9 flex flex-col gap-3">
-            {FEATURES.map((feature) => (
-              <li key={feature} className="flex items-center gap-2.5 text-sm leading-5">
-                <span className="inline-flex size-[22px] items-center justify-center rounded-full bg-white/20">
-                  <Check size={13} strokeWidth={3} aria-hidden />
-                </span>
-                {feature}
-              </li>
+      <aside className="sticky top-0 hidden h-dvh w-[56%] max-w-[1100px] shrink-0 lg:block">
+        <div
+          className="relative flex h-full flex-col overflow-hidden px-12 pt-14 pb-12 text-white"
+          style={{
+            background:
+              "radial-gradient(120% 70% at 90% 0%, #a9b6ff 0%, rgba(169,182,255,0) 55%), linear-gradient(180deg, #5468f3 0%, #3348e8 55%, #2034cc 100%)",
+          }}
+        >
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            {[520, 780, 1040].map((size) => (
+              <span
+                key={size}
+                className="absolute top-[42%] left-1/2 -translate-1/2 rounded-full border border-white/10"
+                style={{ width: size, height: size }}
+              />
             ))}
-          </ul>
+          </div>
+
+          <div className="relative min-h-0 flex-1">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="auth-stage relative w-full">
+                <div className="absolute inset-x-0 top-0 h-0 origin-top">
+                  <AuthShowcase />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative mx-auto mt-6 max-w-[520px] text-center">
+            <h2 className="text-[28px] leading-9 font-semibold tracking-[-0.5px] text-balance">{headline}</h2>
+            <p className="mt-3 text-[15px] leading-6 text-white/75 text-balance">{lead}</p>
+          </div>
         </div>
-        <p className="flex items-center gap-2 text-xs leading-4 text-white/90">
-          <ShieldCheck size={16} aria-hidden />
-          Bank-level encryption · Your data stays yours
-        </p>
       </aside>
 
       <main className="relative flex min-w-0 flex-1 flex-col px-6 pt-5 pb-8 lg:px-10 lg:pt-8">
-        <div className="flex items-center justify-between lg:justify-end">
-          <Logo className="lg:hidden" />
+        <div className="flex items-center justify-between">
+          <Logo />
           <LanguageMenu />
         </div>
         <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-8">{children}</div>

@@ -522,3 +522,10 @@ body {
 @utility animate-in {
   animation: lf-pop 120ms ease both;
 }
+
+/* Auth panel dashboard preview: a 660px stage scaled to fit the panel. */
+.auth-stage { --auth-scale: 0.5; height: calc(660px * var(--auth-scale)); }
+.auth-stage > div { scale: var(--auth-scale); }
+@media (min-width: 1200px) and (min-height: 720px) { .auth-stage { --auth-scale: 0.8; } }
+@media (min-width: 1360px) and (min-height: 860px) { .auth-stage { --auth-scale: 0.95; } }
+@media (min-width: 1700px) and (min-height: 1000px) { .auth-stage { --auth-scale: 1.1; } }
