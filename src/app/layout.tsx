@@ -28,8 +28,11 @@ export const metadata: Metadata = {
   description: "Business finances for every branch, in USD and KHR.",
 };
 
-/** Applies the saved theme before first paint so dark mode never flashes light. Key matches <ThemeToggle storageKey>. */
-const THEME_SCRIPT = `try{var t=localStorage.getItem("fs-theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`;
+/**
+ * Applies the saved theme before first paint so dark mode never flashes light. Key matches <ThemeToggle storageKey>.
+ * Also adds `js` to <html>, which the landing page scroll-reveal CSS waits for (content stays visible without JS).
+ */
+const THEME_SCRIPT = `document.documentElement.classList.add("js");try{var t=localStorage.getItem("fs-theme");if(t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

@@ -529,3 +529,4 @@ body {
 @media (min-width: 1200px) and (min-height: 720px) { .auth-stage { --auth-scale: 0.8; } }
 @media (min-width: 1360px) and (min-height: 860px) { .auth-stage { --auth-scale: 0.95; } }
 @media (min-width: 1700px) and (min-height: 1000px) { .auth-stage { --auth-scale: 1.1; } }
+
