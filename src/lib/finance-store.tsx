@@ -15,7 +15,7 @@ import { useSession } from "@/lib/session";
 type Store = { state: FinanceState; update: (change: (draft: FinanceState) => void) => void; reset: () => void };
 
 const FinanceContext = createContext<Store | null>(null);
-const VERSION = 1;
+const VERSION = 2;
 
 export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const { user } = useSession();

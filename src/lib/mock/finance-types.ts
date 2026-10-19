@@ -93,6 +93,10 @@ export type Category = {
   aiRules: number;
 };
 
+/** category_rules: text match on a bank line's description that suggests the category. */
+export type CategoryMatchType = "CONTAINS" | "STARTS_WITH" | "EQUALS";
+export type CategoryRule = { id: string; categoryId: string; matchType: CategoryMatchType; matchText: string; active: boolean };
+
 export type Rule = { id: string; accountId: string; contains: string; category: string; learned: boolean; active: boolean };
 
 export type Movement = { time: string; label: string; sub: string; usd: number; khr: number };
@@ -182,6 +186,7 @@ export type FinanceState = {
   transactions: Txn[];
   bills: Bill[];
   categories: Category[];
+  categoryRules: CategoryRule[];
   rules: Rule[];
   tills: TillRecord[];
   recons: Recon[];

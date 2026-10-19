@@ -12,6 +12,7 @@ import type {
   Account,
   Bill,
   Category,
+  CategoryRule,
   FinanceState,
   ImportRecord,
   LedgerRow,
@@ -206,6 +207,24 @@ export const CATEGORIES: Category[] = [
   { id: "bank-fees", name: "Bank fees", kind: "expense", color: "#64748b", system: true, active: true, usedInOct: 8, aiRules: 4 },
   { id: "cash-over-short", name: "Cash over/short", kind: "expense", color: "#64748b", system: true, active: true, usedInOct: 7, aiRules: 0 },
   { id: "marketing", name: "Marketing", kind: "expense", color: "#64748b", system: false, active: false, usedInOct: 0, aiRules: 0 },
+];
+
+/** Business-wide matching rules for the editable categories (counts match `aiRules`). */
+export const CATEGORY_RULES: CategoryRule[] = [
+  { id: "cr1", categoryId: "interest", matchType: "STARTS_WITH", matchText: "INTEREST CREDIT", active: true },
+  { id: "cr2", categoryId: "payroll", matchType: "CONTAINS", matchText: "SALARY", active: true },
+  { id: "cr3", categoryId: "payroll", matchType: "CONTAINS", matchText: "PAYROLL", active: true },
+  { id: "cr4", categoryId: "rent", matchType: "CONTAINS", matchText: "BOREY PROPERTY", active: true },
+  { id: "cr5", categoryId: "utilities", matchType: "CONTAINS", matchText: "EDC", active: true },
+  { id: "cr6", categoryId: "utilities", matchType: "CONTAINS", matchText: "PPWSA", active: true },
+  { id: "cr7", categoryId: "utilities", matchType: "STARTS_WITH", matchText: "ELECTRICITE DU CAMBODGE", active: true },
+  { id: "cr8", categoryId: "utilities", matchType: "CONTAINS", matchText: "WATER SUPPLY", active: true },
+  { id: "cr9", categoryId: "utilities", matchType: "EQUALS", matchText: "CINTRI WASTE", active: false },
+  { id: "cr10", categoryId: "internet", matchType: "CONTAINS", matchText: "SMART AXIATA", active: true },
+  { id: "cr11", categoryId: "internet", matchType: "CONTAINS", matchText: "CELLCARD", active: true },
+  { id: "cr12", categoryId: "fuel", matchType: "CONTAINS", matchText: "TOTAL STATION", active: true },
+  { id: "cr13", categoryId: "fuel", matchType: "CONTAINS", matchText: "PTT", active: true },
+  { id: "cr14", categoryId: "fuel", matchType: "CONTAINS", matchText: "GRAB", active: true },
 ];
 
 /** Categories for statement lines also include transfers between own accounts. */
@@ -861,6 +880,7 @@ export function buildFinanceState(role: Role): FinanceState {
     transactions: buildTransactions(role),
     bills: buildBills(role),
     categories: CATEGORIES,
+    categoryRules: CATEGORY_RULES,
     rules: RULES,
     tills: buildTills(role),
     recons: buildRecons(role),
