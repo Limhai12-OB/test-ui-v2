@@ -325,7 +325,7 @@ export function NewWalkIn() {
         }
       />
       <div className="mt-6 grid gap-4 md:gap-6 xl:grid-cols-[minmax(0,1fr)_384px]">
-        <Card className="overflow-hidden" aria-labelledby="cart-title">
+        <Card aria-labelledby="cart-title">
           <CardHeader
             title="Items"
             titleId="cart-title"
@@ -366,7 +366,7 @@ export function NewWalkIn() {
               </ul>
             )}
           </div>
-          <div className="relative overflow-x-auto border-t border-line">
+          <div className="relative overflow-x-auto rounded-b-lg border-t border-line">
             <table className="w-full min-w-[600px] border-collapse text-left">
               <caption className="sr-only">Cart</caption>
               <thead>

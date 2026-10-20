@@ -277,36 +277,55 @@ function NavSection({
             <span className="sr-only"> open tasks</span>
           </span>
         )}
-        <ChevronDown size={16} className={cn("shrink-0 text-icon transition-transform", open && "rotate-180")} aria-hidden />
+        <ChevronDown
+          size={16}
+          className={cn("shrink-0 text-icon transition-transform duration-300 ease-out motion-reduce:transition-none", open && "rotate-180")}
+          aria-hidden
+        />
       </button>
-      {open && (
-        <ul id={listId} className="mt-0.5 mb-1 ml-[21px] flex flex-col gap-0.5 border-l border-line pl-3">
-          {subItems.map((child) => {
-            const on = child === current;
-            const count = counts[child.href];
-            return (
-              <li key={child.href}>
-                <Link
-                  href={child.href}
-                  onClick={onNavigate}
-                  aria-current={on ? "page" : undefined}
-                  className={cn(
-                    "focus-ring flex h-8 items-center gap-2 rounded-md px-2.5 text-[13px] leading-[18px] transition-colors",
-                    on ? "bg-primary-subtle font-medium text-brand" : "text-body hover:bg-muted-bg",
-                  )}
-                >
-                  <span className="min-w-0 flex-1 truncate">{child.label}</span>
-                  {count !== undefined && (
-                    <span className={cn("inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs leading-4 font-medium", on ? "bg-surface text-brand" : "bg-muted-bg text-body")}>
-                      {count}
-                    </span>
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {/* Stays mounted so height can animate: grid rows 0fr → 1fr; `inert` keeps hidden links out of tab order. */}
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+        inert={!open}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <ul
+            id={listId}
+            className={cn(
+              "mt-0.5 mb-1 ml-[21px] flex flex-col gap-0.5 border-l border-line pl-3 transition-transform duration-300 ease-out motion-reduce:transition-none",
+              open ? "translate-y-0" : "-translate-y-1",
+            )}
+          >
+            {subItems.map((child) => {
+              const on = child === current;
+              const count = counts[child.href];
+              return (
+                <li key={child.href}>
+                  <Link
+                    href={child.href}
+                    onClick={onNavigate}
+                    aria-current={on ? "page" : undefined}
+                    className={cn(
+                      "focus-ring flex h-8 items-center gap-2 rounded-md px-2.5 text-[13px] leading-[18px] transition-colors",
+                      on ? "bg-primary-subtle font-medium text-brand" : "text-body hover:bg-muted-bg",
+                    )}
+                  >
+                    <span className="min-w-0 flex-1 truncate">{child.label}</span>
+                    {count !== undefined && (
+                      <span className={cn("inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs leading-4 font-medium", on ? "bg-surface text-brand" : "bg-muted-bg text-body")}>
+                        {count}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

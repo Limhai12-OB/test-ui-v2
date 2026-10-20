@@ -193,8 +193,9 @@
   --breakpoint-xl: 80rem;
   --breakpoint-desktop: 90rem;
 
-  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
-  --font-num: var(--font-mulish), ui-sans-serif, system-ui, sans-serif;
+  /* Poppins and Mulish have no Khmer glyphs, so any Khmer text falls through to Kantumruy Pro. */
+  --font-sans: var(--font-poppins), var(--font-kantumruy), ui-sans-serif, system-ui, sans-serif;
+  --font-num: var(--font-mulish), var(--font-kantumruy), ui-sans-serif, system-ui, sans-serif;
   --font-khmer: var(--font-kantumruy), var(--font-poppins), sans-serif;
 
   --color-primary: var(--lf-primary-default);

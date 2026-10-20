@@ -4,7 +4,8 @@ import { SessionProvider } from "@/lib/session";
 import "./globals.css";
 
 // Figma text styles use Poppins for UI text, Mulish SemiBold for tabular
-// figures and Kantumruy Pro for the riel sign / Khmer text.
+// figures and Kantumruy Pro for the riel sign / Khmer text. Kantumruy Pro is
+// a variable font (100–700), so Khmer can follow any weight the UI uses.
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -20,7 +21,6 @@ const mulish = Mulish({
 const kantumruy = Kantumruy_Pro({
   variable: "--font-kantumruy",
   subsets: ["khmer"],
-  weight: ["500"],
 });
 
 export const metadata: Metadata = {

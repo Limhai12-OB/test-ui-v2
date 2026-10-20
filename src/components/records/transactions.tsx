@@ -89,7 +89,8 @@ export function Transactions() {
     <Page>
       <RecordsHeader subtitle={isManager ? `Transactions recorded for ${user?.branch} Branch.` : undefined} />
       {isManager && <ScopeNotice branch={user?.branch} className="mt-6" />}
-      <section className="mt-6 overflow-hidden rounded-lg border border-line bg-surface shadow-xs" aria-label="Transactions">
+      {/* No overflow-hidden here: the date picker and filter panels open over the card's edges. */}
+      <section className="mt-6 rounded-lg border border-line bg-surface shadow-xs" aria-label="Transactions">
         <FilterBar
           className="border-b border-line"
           onExport={() =>
