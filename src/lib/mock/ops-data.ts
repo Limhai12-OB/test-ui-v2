@@ -88,7 +88,8 @@ export const ITEMS: Item[] = [
   item("vital-water", "Vital Water 500ml × 12", "BEV-VTL-500", "Beverages", "case", 2.1, 3, { [CM]: 340, [TK]: 152, [SR]: 0, [BB]: 76 }, 60),
 ];
 
-export const ITEM_CATEGORIES = ["Beverages", "Dairy", "Pantry", "Spices", "Rice & grains", "Snacks", "Household"];
+// Starting lists. The categories are the ones the seeded items use; Snacks and Household arrive with the sample item import (08.10).
+export const ITEM_CATEGORIES = ["Beverages", "Dairy", "Pantry", "Spices", "Rice & grains"];
 export const UNITS = ["Case", "Bag", "Box", "Bottle", "Can", "Pack", "Piece", "Kg"];
 
 const PEOPLE: Record<BranchName, string> = { [CM]: "Sokha Chan", [TK]: "Dara Sok", [SR]: "Bopha Keo", [BB]: "Vannak Lim" };
@@ -608,6 +609,8 @@ export function buildOpsState(): OpsState {
     .forEach((p) => (p.slip = `slip_${p.ref.replace(/\W/g, "")}.jpg`));
   return {
     items: structuredClone(ITEMS),
+    categories: [...ITEM_CATEGORIES],
+    units: [...UNITS],
     moves: buildMoves(),
     adjustments: ADJUSTMENTS,
     saleLines: buildSaleLines(),

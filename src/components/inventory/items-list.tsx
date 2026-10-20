@@ -4,16 +4,16 @@ import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Box, Boxes, Ellipsis, Info, Landmark, PackageX } from "lucide-react";
 import { StatusPill } from "@/components/finance/common";
-import { Segmented } from "@/components/ui/flow";
 import { DataTable, MobileRow, TwoLine, type SortState } from "@/components/ui/data-table";
 import { FilterBar, FilterMenu, Pagination, paginate, SearchInput } from "@/components/ui/filters";
 import { Menu } from "@/components/ui/menu";
 import { useToast } from "@/components/ui/overlay";
-import { Notice, Page } from "@/components/ui/page";
+import { Notice, Page, Tabs } from "@/components/ui/page";
 import { Delta, StatCard } from "@/components/ui/stat";
 import { cn, downloadCsv, money, num } from "@/lib/format";
 import { BRANCHES_4, type BranchName, type Item } from "@/lib/mock/ops-types";
 import { branchLevel, stockSummary, totalStock, useBranchScope, useOps } from "@/lib/ops-store";
+import { CategoriesUnits } from "./categories-units";
 import { AdjustButton, InventoryHeader, ItemTile, LevelPill } from "./inventory-shared";
 
 const margin = (i: Item) => (i.price ? ((i.price - i.cost) / i.price) * 100 : 0);
@@ -25,9 +25,13 @@ export function ItemsList() {
   const router = useRouter();
   const toast = useToast();
   const params = useSearchParams();
-  // "By branch" replaces the old Stock by branch tab: same items, one stock column per branch.
-  const [view, setView] = useState<"items" | "branch">(params.get("view") === "branch" ? "branch" : "items");
-  const byBranch = !scope && view === "branch";
+  // Items tab: the item list. Stock tab: stock levels — one column per branch for the owner,
+  // stock here for a Branch Manager. `?view=branch` is the old link to the Stock tab.
+  const initialView = params.get("view");
+  const [view, setView] = useState<"items" | "stock" | "categories">(
+    ["stock", "branch"].includes(initialView ?? "") ? "stock" : initialView === "categories" ? "categories" : "items",
+  );
+  const byBranch = !scope && view === "stock";
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [branch, setBranch] = useState<string | null>(null);
@@ -73,6 +77,8 @@ export function ItemsList() {
   const exportCsv = () =>
     byBranch
       ? downloadCsv("stock-by-branch.csv", [["Item", "SKU", "Minimum", ...BRANCHES_4, "Total"], ...rows.map((i) => [i.name, i.sku, i.min["Central Market"] ?? "", ...BRANCHES_4.map((b) => i.stock[b] ?? ""), totalStock(i)])])
+      : scope && view === "stock"
+      ? downloadCsv(`stock-${scope.toLowerCase().replace(/ /g, "-")}.csv`, [["Item", "SKU", "Stock here", "Minimum", "Stock status"], ...rows.map((i) => [i.name, i.sku, i.stock[scope] ?? "", i.min[scope] ?? "", stockSummary(i, scope).label])])
       : downloadCsv("items.csv", [
       ["Item", "SKU", "Category", "Cost (USD)", "Price (USD)", scope ? `Stock at ${scope}` : "Total stock", "Status"],
       ...rows.map((i) => [i.name, i.sku, i.category, i.cost, i.price, totalStock(i, scope), i.active ? "Active" : "Inactive"]),
@@ -92,11 +98,16 @@ export function ItemsList() {
         { key: "stock", header: "Total", align: "right" as const, width: "90px", cell: (i: Item) => <span className="tabular text-fg">{totalStock(i)}</span> },
         { key: "adjust", header: "Adjust", srHeader: true, width: "80px", cell: (i: Item) => <span className="block text-right" onClick={(e) => e.stopPropagation()}><AdjustButton link label="Adjust" itemId={i.id} branch={BRANCHES_4.find((b) => ["low", "out"].includes(levelAt(i, b) ?? ""))} /></span> },
       ]
-    : scope
+    : scope && view === "items"
     ? [
         { key: "item", header: "Item", cell: (i: Item) => <ItemCell item={i} sub={i.sku} /> },
-        { key: "category", header: "Category", width: "150px", cell: (i: Item) => <span className="text-muted">{i.category}</span> },
-        { key: "price", header: "Selling price (USD)", align: "right" as const, width: "150px", cell: (i: Item) => <span className="tabular text-fg">{num(i.price)}</span> },
+        { key: "category", header: "Category", width: "180px", cell: (i: Item) => <span className="text-muted">{i.category}</span> },
+        { key: "price", header: "Selling price (USD)", align: "right" as const, width: "160px", cell: (i: Item) => <span className="tabular text-fg">{num(i.price)}</span> },
+        { key: "status", header: "Stock status", width: "150px", cell: (i: Item) => <LevelPill item={i} branch={scope} /> },
+      ]
+    : scope
+    ? [
+        { key: "item", header: "Item", cell: (i: Item) => <ItemCell item={i} sub={`${i.sku} · ${i.category}`} /> },
         { key: "stock", header: "Stock here", align: "right" as const, width: "100px", cell: (i: Item) => <span className={cn("tabular", levelAt(i, scope) === "in" ? "text-fg" : levelAt(i, scope) === "out" ? "text-error-fg" : "text-warning-fg")}>{i.stock[scope]}</span> },
         { key: "min", header: "Minimum", align: "right" as const, width: "90px", cell: (i: Item) => <span className="tabular text-fg">{i.min[scope]}</span> },
         { key: "status", header: "Stock status", width: "150px", cell: (i: Item) => <LevelPill item={i} branch={scope} /> },
@@ -164,85 +175,93 @@ export function ItemsList() {
         <StatCard label="Stock value at cost" icon={<Landmark size={16} aria-hidden />} value={money(value)} unit="USD" lines={[<span key="d" className="flex items-center gap-2"><span className="inline-flex h-[22px] items-center rounded-sm bg-muted-bg px-1.5 text-xs font-medium text-body">↗ 2.3%</span> vs last month</span>]} />
       </div>
 
-      {!scope && (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          {byBranch ? (
-            <span className="flex items-center gap-4 text-[13px] text-muted">
-              <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-xs bg-warning" />Below minimum</span>
-              <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-xs bg-error" />Out of stock</span>
-            </span>
-          ) : <span />}
-          <Segmented
-            label="Item view"
-            value={view}
-            onChange={(v) => (setView(v), setSelected([]), router.replace(v === "branch" ? "/inventory?view=branch" : "/inventory", { scroll: false }))}
-            options={[
-              { value: "items", label: "Items" },
-              { value: "branch", label: "Stock by branch" },
-            ]}
-          />
+      <Tabs
+        className="mt-6"
+        label="Items and stock"
+        value={view}
+        onChange={(id) => {
+          const v = id as typeof view;
+          setView(v);
+          setSelected([]);
+          setPage(1);
+          router.replace(v === "items" ? "/inventory" : `/inventory?view=${v}`, { scroll: false });
+        }}
+        items={[
+          { id: "items", label: "Items" },
+          { id: "stock", label: "Stock" },
+          { id: "categories", label: "Categories & units" },
+        ]}
+      />
+      {view === "stock" && (
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-[13px] text-muted">
+          <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-xs bg-warning" />Below minimum</span>
+          <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-xs bg-error" />Out of stock</span>
         </div>
       )}
-      <section className={cn("mt-4 overflow-hidden rounded-lg border border-line bg-surface shadow-xs", scope && "md:mt-6")} aria-label="Items">
-        {selected.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-3 border-b border-primary/20 bg-primary-subtle/60 px-4 py-3">
-            <p className="text-sm font-medium text-brand">{selected.length} selected</p>
-            <button type="button" onClick={() => setActive(selected, true)} className="focus-ring cursor-pointer rounded-xs text-sm font-medium text-brand hover:underline">Make active</button>
-            <button type="button" onClick={() => setActive(selected, false)} className="focus-ring cursor-pointer rounded-xs text-sm font-medium text-brand hover:underline">Make inactive</button>
-            <button type="button" onClick={() => setSelected([])} className="focus-ring ml-auto cursor-pointer rounded-xs text-sm text-body hover:underline">Clear selection</button>
-          </div>
-        ) : (
-          <FilterBar className="border-b border-line" onExport={exportCsv}>
-            <SearchInput value={query} onChange={setQuery} placeholder="Search by name or SKU" />
-            <FilterMenu label="Category" value={category} onChange={setCategory} options={[...new Set(state.items.map((i) => i.category))].sort().map((c) => ({ value: c, label: c }))} />
-            {!scope && <FilterMenu label="Branch" value={branch} onChange={setBranch} options={BRANCHES_4.map((b) => ({ value: b, label: b }))} />}
-            <FilterMenu
-              label="Stock"
-              value={level}
-              onChange={setLevel}
-              options={[
-                { value: "in", label: "In stock" },
-                { value: "low", label: "Low stock" },
-                { value: "out", label: "Out of stock" },
-              ]}
-            />
-            {!scope && (
+      {view === "categories" ? (
+        <CategoriesUnits />
+      ) : (
+        <section className="mt-4 overflow-hidden rounded-lg border border-line bg-surface shadow-xs" aria-label={view === "stock" ? "Stock" : "Items"}>
+          {selected.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-3 border-b border-primary/20 bg-primary-subtle/60 px-4 py-3">
+              <p className="text-sm font-medium text-brand">{selected.length} selected</p>
+              <button type="button" onClick={() => setActive(selected, true)} className="focus-ring cursor-pointer rounded-xs text-sm font-medium text-brand hover:underline">Make active</button>
+              <button type="button" onClick={() => setActive(selected, false)} className="focus-ring cursor-pointer rounded-xs text-sm font-medium text-brand hover:underline">Make inactive</button>
+              <button type="button" onClick={() => setSelected([])} className="focus-ring ml-auto cursor-pointer rounded-xs text-sm text-body hover:underline">Clear selection</button>
+            </div>
+          ) : (
+            <FilterBar className="border-b border-line" onExport={exportCsv}>
+              <SearchInput value={query} onChange={setQuery} placeholder="Search by name or SKU" />
+              <FilterMenu label="Category" value={category} onChange={setCategory} options={[...new Set(state.items.map((i) => i.category))].sort().map((c) => ({ value: c, label: c }))} />
+              {!scope && <FilterMenu label="Branch" value={branch} onChange={setBranch} options={BRANCHES_4.map((b) => ({ value: b, label: b }))} />}
               <FilterMenu
-                label="Status"
-                value={status}
-                onChange={setStatus}
+                label="Stock"
+                value={level}
+                onChange={setLevel}
                 options={[
-                  { value: "active", label: "Active" },
-                  { value: "inactive", label: "Inactive" },
+                  { value: "in", label: "In stock" },
+                  { value: "low", label: "Low stock" },
+                  { value: "out", label: "Out of stock" },
                 ]}
               />
-            )}
-          </FilterBar>
-        )}
-        <DataTable
-          caption="Items"
-          rows={slice}
-          rowKey={(i) => i.id}
-          sort={sort}
-          sortable={["item", "stock"]}
-          onSort={setSort}
-          onRowClick={(i) => router.push(`/inventory/items/${i.id}`)}
-          rowClassName={(i) => (!i.active ? "bg-subtle/70" : selected.includes(i.id) ? "bg-primary-subtle/40" : undefined)}
-          minWidth={scope ? 860 : byBranch ? 980 : 1040}
-          empty="No items match these filters."
-          columns={columns}
-          mobileRow={(i) => (
-            <MobileRow
-              leading={<ItemTile />}
-              title={i.name}
-              sub={byBranch ? BRANCHES_4.map((b) => `${b.split(" ")[0]} ${i.stock[b] ?? "—"}`).join(" · ") : `${i.sku} · ${scope ? stockSummary(i, scope).label : stockSummary(i).label}`}
-              value={<span className="tabular">{totalStock(i, scope)}</span>}
-              valueSub={`$${num(i.price)}`}
-            />
+              {!scope && (
+                <FilterMenu
+                  label="Status"
+                  value={status}
+                  onChange={setStatus}
+                  options={[
+                    { value: "active", label: "Active" },
+                    { value: "inactive", label: "Inactive" },
+                  ]}
+                />
+              )}
+            </FilterBar>
           )}
-        />
-        <Pagination page={current} pageSize={pageSize} total={rows.length} noun="items" onPage={setPage} onPageSize={scope ? undefined : (s) => (setPageSize(s), setPage(1))} />
-      </section>
+          <DataTable
+            caption={view === "stock" ? "Stock levels" : "Items"}
+            rows={slice}
+            rowKey={(i) => i.id}
+            sort={sort}
+            sortable={["item", "stock"]}
+            onSort={setSort}
+            onRowClick={(i) => router.push(`/inventory/items/${i.id}`)}
+            rowClassName={(i) => (!i.active ? "bg-subtle/70" : selected.includes(i.id) ? "bg-primary-subtle/40" : undefined)}
+            minWidth={scope ? 760 : byBranch ? 980 : 1040}
+            empty="No items match these filters."
+            columns={columns}
+            mobileRow={(i) => (
+              <MobileRow
+                leading={<ItemTile />}
+                title={i.name}
+                sub={byBranch ? BRANCHES_4.map((b) => `${b.split(" ")[0]} ${i.stock[b] ?? "—"}`).join(" · ") : `${i.sku} · ${scope ? stockSummary(i, scope).label : stockSummary(i).label}`}
+                value={<span className="tabular">{totalStock(i, scope)}</span>}
+                valueSub={`$${num(i.price)}`}
+              />
+            )}
+          />
+          <Pagination page={current} pageSize={pageSize} total={rows.length} noun="items" onPage={setPage} onPageSize={scope ? undefined : (s) => (setPageSize(s), setPage(1))} />
+        </section>
+      )}
     </Page>
   );
 }

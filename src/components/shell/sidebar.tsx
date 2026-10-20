@@ -104,14 +104,11 @@ export function Sidebar({
             {collapsed ? (
               <span className="mx-auto mb-1 h-px w-6 bg-line" aria-hidden />
             ) : (
-              <p className="text-overline flex items-center gap-1.5 px-3 pb-1 text-muted">
-                {group.label}
-                {group.locked && <Lock size={12} aria-hidden />}
-              </p>
+              <p className="text-overline px-3 pb-1 text-muted">{group.label}</p>
             )}
             {group.items.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              const children = group.locked ? [] : childrenForRole(item, user.role);
+              const children = childrenForRole(item, user.role);
               return !collapsed && children.length > 1 ? (
                 <NavSection
                   key={item.href}
@@ -131,7 +128,6 @@ export function Sidebar({
                   item={item}
                   active={active}
                   collapsed={collapsed}
-                  locked={group.locked}
                   badge={badges[item.href]}
                   onNavigate={onClose}
                 />
@@ -190,14 +186,12 @@ function NavLink({
   item,
   active,
   collapsed,
-  locked,
   badge,
   onNavigate,
 }: {
   item: NavItem;
   active: boolean;
   collapsed: boolean;
-  locked?: boolean;
   badge?: number;
   onNavigate?: () => void;
 }) {
@@ -207,12 +201,11 @@ function NavLink({
       href={item.href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
-      title={collapsed ? (locked ? `${item.label} (owner only)` : item.label) : undefined}
+      title={collapsed ? item.label : undefined}
       className={cn(
         "focus-ring relative flex h-10 shrink-0 items-center gap-3 rounded-md text-sm leading-5 font-medium transition-colors",
         collapsed ? "justify-center px-0" : "px-3",
         active ? "bg-primary-subtle text-brand" : "text-body hover:bg-muted-bg",
-        locked && "text-muted",
       )}
     >
       <Icon size={20} strokeWidth={1.75} className={active ? "text-brand" : "text-icon"} aria-hidden />
@@ -226,7 +219,6 @@ function NavLink({
       {collapsed && badge !== undefined && (
         <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" aria-label={`${badge} open tasks`} />
       )}
-      {!collapsed && locked && <Lock size={14} className="text-icon" aria-label="Owner only" />}
     </Link>
   );
 }

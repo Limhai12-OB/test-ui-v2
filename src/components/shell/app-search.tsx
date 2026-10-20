@@ -26,7 +26,7 @@ export function AppSearch({ className }: { className?: string }) {
   const items = useMemo<CommandItem[]>(() => {
     if (!user) return [];
     const go = (href: string) => () => router.push(href);
-    const pages: CommandItem[] = [...groupsForRole(user.role).filter((g) => !("locked" in g && g.locked)).flatMap((g) => g.items), SETTINGS_ITEM].map((n) => ({
+    const pages: CommandItem[] = [...groupsForRole(user.role).flatMap((g) => g.items), SETTINGS_ITEM].map((n) => ({
       id: `page-${n.href}`,
       label: n.label,
       group: "Go to",

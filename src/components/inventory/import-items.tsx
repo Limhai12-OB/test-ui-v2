@@ -12,7 +12,6 @@ import { DetailList, Stepper } from "@/components/ui/flow";
 import { useToast } from "@/components/ui/overlay";
 import { Notice, Page, PageHeader, Tabs } from "@/components/ui/page";
 import { cn, downloadCsv, num } from "@/lib/format";
-import { ITEM_CATEGORIES } from "@/lib/mock/ops-data";
 import type { BranchName } from "@/lib/mock/ops-types";
 import { moveStock, nowStamp, useBranchScope, useOps } from "@/lib/ops-store";
 import { useSession } from "@/lib/session";
@@ -210,7 +209,7 @@ export function ImportItems() {
   const shown = tab === "review" ? groups.review : tab === "duplicate" ? groups.duplicate : tab === "ready" ? groups.ready : ordered;
   const { current, slice } = paginate(shown, page, 7);
   const toImport = groups.ready;
-  const knownCats = new Set([...ITEM_CATEGORIES.slice(0, 5), ...state.items.map((i) => i.category)]);
+  const knownCats = new Set([...state.categories, ...state.items.map((i) => i.category)]);
   const newCats = [...new Set(toImport.map((r) => r.category).filter((c) => !knownCats.has(c)))];
   const stockMoves = postStock ? toImport.reduce((s, r) => s + Object.values(r.stock).filter((n) => (n ?? 0) > 0).length, 0) : 0;
   const branchesUsed = [...new Set(toImport.flatMap((r) => Object.keys(r.stock)))];
@@ -234,6 +233,7 @@ export function ImportItems() {
         draft.items.push({ id, name: r.name, sku: r.sku, category: r.category, unit: "piece", cost: r.cost, price: r.price!, active: true, stock: Object.fromEntries(branches.map((b) => [b, 0])), min: Object.fromEntries(branches.map((b) => [b, 0])), created: "2026-10-31", createdBy: user!.name });
         if (postStock) for (const b of branches) if ((r.stock[b] ?? 0) > 0) moveStock(draft, { at: nowStamp(), itemId: id, branch: b, kind: "initial", change: r.stock[b]!, ref: "Initial stock", refSub: `Import · ${file!.file}`, by: user!.name });
       }
+      draft.categories.push(...newCats.filter((c) => !draft.categories.includes(c)));
       draft.lastImport = { ids, at: nowStamp(), file: file!.file };
     });
     setResult({ ids, dupes: groups.duplicate.length, cats: newCats, moves: stockMoves, at: nowStamp() });
