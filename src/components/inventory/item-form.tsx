@@ -12,7 +12,6 @@ import { DetailList, Switch } from "@/components/ui/flow";
 import { useToast } from "@/components/ui/overlay";
 import { Notice, Page, PageHeader } from "@/components/ui/page";
 import { cn, money, num } from "@/lib/format";
-import { ITEM_CATEGORIES, UNITS } from "@/lib/mock/ops-data";
 import { BRANCHES_4, type BranchName, type Item } from "@/lib/mock/ops-types";
 import { moveStock, nowStamp, plural, totalStock, useBranchScope, useOps } from "@/lib/ops-store";
 import { useSession } from "@/lib/session";
@@ -141,9 +140,15 @@ export function ItemForm({ mode }: { mode: "new" | "edit" }) {
                 state={skuTaken || (submitted && !sku.trim()) ? "error" : "default"}
                 message={skuTaken ? `This SKU is already used by “${skuTaken.name}”.` : submitted && !sku.trim() ? "Enter a SKU." : "Must be unique."}
               />
-              <SelectField label="Category" value={category} onChange={(e) => setCategory(e.target.value)} state={submitted && !category ? "error" : "default"} message={submitted && !category ? "Choose a category." : undefined} options={[{ value: "", label: "Select a category", disabled: true }, ...ITEM_CATEGORIES.map((x) => ({ value: x, label: x }))]} />
-              <SelectField label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} state={submitted && !unit ? "error" : "default"} message={submitted && !unit ? "Choose a unit." : undefined} options={[{ value: "", label: "e.g. piece, case, kg", disabled: true }, ...UNITS.map((x) => ({ value: x, label: x }))]} />
+              <SelectField label="Category" value={category} onChange={(e) => setCategory(e.target.value)} state={submitted && !category ? "error" : "default"} message={submitted && !category ? "Choose a category." : undefined} options={[{ value: "", label: "Select a category", disabled: true }, ...state.categories.map((x) => ({ value: x, label: x }))]} />
+              <SelectField label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} state={submitted && !unit ? "error" : "default"} message={submitted && !unit ? "Choose a unit." : undefined} options={[{ value: "", label: "e.g. piece, case, kg", disabled: true }, ...state.units.map((x) => ({ value: x, label: x }))]} />
             </div>
+            <p className="-mt-1 px-5 pb-5 text-[13px] leading-5 text-muted">
+              Missing a category or unit?{" "}
+              <Link href="/inventory?view=categories" className="focus-ring rounded-xs font-medium text-brand hover:underline">
+                Manage categories and units
+              </Link>
+            </p>
           </Card>
           <Card aria-labelledby="pricing-title">
             <CardHeader title="Pricing" titleId="pricing-title" subtitle="Prices are kept in USD, your default currency." />

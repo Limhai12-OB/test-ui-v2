@@ -1,6 +1,5 @@
 import {
   Building2,
-  CloudUpload,
   FileChartColumn,
   Landmark,
   LayoutDashboard,
@@ -18,7 +17,7 @@ export type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
-  /** Hidden behind a lock for Branch Managers (frame 05.3 "Owner only"). */
+  /** Hidden from Branch Managers; the page itself shows a restricted notice if opened directly. */
   ownerOnly?: boolean;
   /** Has its own route (every item does now; kept for screens added later). */
   built?: boolean;
@@ -129,7 +128,6 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Setup",
     items: [
-      { href: "/data-import", label: "Data Import", icon: CloudUpload, built: true },
       { href: "/integrations", label: "Integrations", icon: Plug, ownerOnly: true, built: true },
     ],
   },
@@ -148,14 +146,10 @@ export const EXTRA_SECTIONS: NavItem[] = [
   { href: "/scan", label: "Scan receipt", icon: Settings, built: true },
 ];
 
-/** Sidebar order for a role: Branch Managers get owner-only items in a locked group at the end. */
-export function groupsForRole(role: "owner" | "manager"): (NavGroup & { locked?: boolean })[] {
+/** Sidebar order for a role: Branch Managers don't see owner-only items, and groups left empty are dropped. */
+export function groupsForRole(role: "owner" | "manager"): NavGroup[] {
   if (role === "owner") return NAV_GROUPS;
-  const visible = NAV_GROUPS.map((group) => ({ ...group, items: group.items.filter((item) => !item.ownerOnly) })).filter(
-    (group) => group.items.length,
-  );
-  const locked = NAV_GROUPS.flatMap((group) => group.items.filter((item) => item.ownerOnly));
-  return [...visible, { label: "Owner only", items: locked, locked: true }];
+  return NAV_GROUPS.map((group) => ({ ...group, items: group.items.filter((item) => !item.ownerOnly) })).filter((group) => group.items.length);
 }
 
 /** Sub-pages of `item` visible to a role. */

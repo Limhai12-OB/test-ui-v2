@@ -141,6 +141,9 @@ export type OpsState = {
   customers: Customer[];
   invoices: Invoice[];
   planned: Planned[];
+  /** Item categories and units the owner manages (Items & Inventory → Categories & units). Units are capitalised, e.g. "Case". */
+  categories: string[];
+  units: string[];
   next: { invoice: number; walkIn: number; planned: number; move: number };
   /** Undo window for the last item import (ids created). */
   lastImport?: { ids: string[]; at: string; file: string };

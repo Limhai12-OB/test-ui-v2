@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { daysBetween, TODAY } from "@/lib/format";
-import { buildOpsState, docTotal } from "@/lib/mock/ops-data";
+import { buildOpsState, docTotal, ITEM_CATEGORIES, UNITS } from "@/lib/mock/ops-data";
 import type { BranchName, DocLine, Invoice, Item, OpsState, Planned, StockMove } from "@/lib/mock/ops-types";
 import { useSession } from "@/lib/session";
 
@@ -28,6 +28,9 @@ export function OpsProvider({ children }: { children: React.ReactNode }) {
         const stored = sessionStorage.getItem(key);
         if (stored) next = JSON.parse(stored) as OpsState;
       } catch {}
+      // Sessions saved before categories and units were editable.
+      next.categories ??= [...new Set([...ITEM_CATEGORIES, ...next.items.map((i) => i.category)])];
+      next.units ??= [...UNITS];
     }
     setState(next);
     setLoadedKey(key);

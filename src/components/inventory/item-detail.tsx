@@ -132,7 +132,7 @@ export function ItemDetail() {
       <div className="mt-4 grid gap-4 md:mt-6 md:gap-6 xl:grid-cols-[minmax(0,1fr)_352px]">
         <div className="flex min-w-0 flex-col gap-4 md:gap-6">
           <Card aria-labelledby="by-branch-title">
-            <CardHeader title={scope ? "Stock here" : "Stock by branch"} titleId="by-branch-title" subtitle={`Minimum stock is ${item.min[branches[0]] ?? 0} ${units} per branch`} actions={!scope && <CardLink href="/inventory?view=branch">Open stock by branch</CardLink>} />
+            <CardHeader title={scope ? "Stock here" : "Stock by branch"} titleId="by-branch-title" subtitle={`Minimum stock is ${item.min[branches[0]] ?? 0} ${units} per branch`} actions={!scope && <CardLink href="/inventory?view=stock">Open stock by branch</CardLink>} />
             <ul className="flex flex-col gap-3.5 p-5">
               {branches.map((b) => {
                 const qty = item.stock[b] ?? 0;

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// Stock by branch now lives in the Items tab as the "Stock by branch" view.
+// Stock by branch now lives on the Items page as the "Stock" tab.
 export default function Page() {
-  redirect("/inventory?view=branch");
+  redirect("/inventory?view=stock");
 }
