@@ -12,7 +12,7 @@ import { DataTable, MobileRow, TwoLine, type Column, type SortState } from "@/co
 import { FilterMenu, Pagination, SearchInput, paginate } from "@/components/ui/filters";
 import { Segmented } from "@/components/ui/flow";
 import { Menu } from "@/components/ui/menu";
-import { LinkTabs, Notice, Page, PageHeader } from "@/components/ui/page";
+import { Notice, Page, PageHeader } from "@/components/ui/page";
 import { Delta, StatCard } from "@/components/ui/stat";
 import { useToast } from "@/components/ui/overlay";
 import { branchLabel, branchManager, firstName, managerBranchText, pendingManager, useAdmin } from "@/lib/admin-store";
@@ -54,7 +54,6 @@ function InfoTile({ icon, label, value }: { icon: React.ReactNode; label: string
 }
 
 function BranchesHeader({ tab }: { tab: "branches" | "managers" }) {
-  const { state } = useAdmin();
   const router = useRouter();
   const [invite, setInvite] = useState(false);
   return (
@@ -83,13 +82,6 @@ function BranchesHeader({ tab }: { tab: "branches" | "managers" }) {
             </>
           )
         }
-      />
-      <LinkTabs
-        className="mt-6"
-        items={[
-          { href: "/branches", label: "Branches", count: state.branches.length, exact: true },
-          { href: "/branches/managers", label: "Branch Managers", count: state.managers.length },
-        ]}
       />
       <InviteDialog open={invite} onClose={() => setInvite(false)} onSent={() => tab === "branches" && router.push("/branches/managers")} />
     </>

@@ -153,7 +153,7 @@ export function ReportsList() {
 
   return (
     <Page>
-      <ReportsHeader isManager={isManager} branch={branch} count={reports.available.length} generating={Boolean(reports.generating)} onGenerate={() => router.replace("/monthly-reports/all?generate=1", { scroll: false })} />
+      <ReportsHeader isManager={isManager} branch={branch} generating={Boolean(reports.generating)} onGenerate={() => router.replace("/monthly-reports/all?generate=1", { scroll: false })} />
       {isManager && <ScopeNotice branch={branch} className="mt-6" />}
 
       {!isManager && oct.state === "generating" && (

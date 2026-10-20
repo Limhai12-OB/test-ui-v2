@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Box, Boxes, Ellipsis, Info, Landmark, PackageX } from "lucide-react";
 import { StatusPill } from "@/components/finance/common";
+import { Segmented } from "@/components/ui/flow";
 import { DataTable, MobileRow, TwoLine, type SortState } from "@/components/ui/data-table";
 import { FilterBar, FilterMenu, Pagination, paginate, SearchInput } from "@/components/ui/filters";
 import { Menu } from "@/components/ui/menu";
@@ -23,6 +24,10 @@ export function ItemsList() {
   const scope = useBranchScope();
   const router = useRouter();
   const toast = useToast();
+  const params = useSearchParams();
+  // "By branch" replaces the old Stock by branch tab: same items, one stock column per branch.
+  const [view, setView] = useState<"items" | "branch">(params.get("view") === "branch" ? "branch" : "items");
+  const byBranch = !scope && view === "branch";
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [branch, setBranch] = useState<string | null>(null);
@@ -66,12 +71,28 @@ export function ItemsList() {
   };
 
   const exportCsv = () =>
-    downloadCsv("items.csv", [
+    byBranch
+      ? downloadCsv("stock-by-branch.csv", [["Item", "SKU", "Minimum", ...BRANCHES_4, "Total"], ...rows.map((i) => [i.name, i.sku, i.min["Central Market"] ?? "", ...BRANCHES_4.map((b) => i.stock[b] ?? ""), totalStock(i)])])
+      : downloadCsv("items.csv", [
       ["Item", "SKU", "Category", "Cost (USD)", "Price (USD)", scope ? `Stock at ${scope}` : "Total stock", "Status"],
       ...rows.map((i) => [i.name, i.sku, i.category, i.cost, i.price, totalStock(i, scope), i.active ? "Active" : "Inactive"]),
     ]);
 
-  const columns = scope
+  const branchCell = (i: Item, b: BranchName) => {
+    const lvl = levelAt(i, b);
+    if (!lvl) return <span className="text-muted">—</span>;
+    return <span className={cn("tabular", lvl === "in" ? "text-fg" : lvl === "low" ? "text-warning-fg" : "text-error-fg")}>{i.stock[b]}</span>;
+  };
+
+  const columns = byBranch
+    ? [
+        { key: "item", header: "Item", cell: (i: Item) => <ItemCell item={i} sub={i.sku} /> },
+        { key: "min", header: "Minimum", align: "right" as const, width: "90px", cell: (i: Item) => <span className="tabular text-muted">{i.min["Central Market"] ?? Object.values(i.min)[0]}</span> },
+        ...BRANCHES_4.map((b) => ({ key: b, header: b, align: "right" as const, width: "130px", cell: (i: Item) => branchCell(i, b) })),
+        { key: "stock", header: "Total", align: "right" as const, width: "90px", cell: (i: Item) => <span className="tabular text-fg">{totalStock(i)}</span> },
+        { key: "adjust", header: "Adjust", srHeader: true, width: "80px", cell: (i: Item) => <span className="block text-right" onClick={(e) => e.stopPropagation()}><AdjustButton link label="Adjust" itemId={i.id} branch={BRANCHES_4.find((b) => ["low", "out"].includes(levelAt(i, b) ?? ""))} /></span> },
+      ]
+    : scope
     ? [
         { key: "item", header: "Item", cell: (i: Item) => <ItemCell item={i} sub={i.sku} /> },
         { key: "category", header: "Category", width: "150px", cell: (i: Item) => <span className="text-muted">{i.category}</span> },
@@ -120,7 +141,7 @@ export function ItemsList() {
               items={[
                 { id: "view", label: "View item", onSelect: () => router.push(`/inventory/items/${i.id}`) },
                 { id: "edit", label: "Edit item", onSelect: () => router.push(`/inventory/items/${i.id}/edit`) },
-                { id: "moves", label: "Movement history", onSelect: () => router.push(`/inventory/movements?item=${i.id}`) },
+                { id: "moves", label: "Movement history", onSelect: () => router.push(`/inventory/adjustments?view=movements&item=${i.id}`) },
                 { id: "toggle", label: i.active ? "Make inactive" : "Make active", onSelect: () => setActive([i.id], !i.active) },
               ]}
             />
@@ -143,7 +164,26 @@ export function ItemsList() {
         <StatCard label="Stock value at cost" icon={<Landmark size={16} aria-hidden />} value={money(value)} unit="USD" lines={[<span key="d" className="flex items-center gap-2"><span className="inline-flex h-[22px] items-center rounded-sm bg-muted-bg px-1.5 text-xs font-medium text-body">↗ 2.3%</span> vs last month</span>]} />
       </div>
 
-      <section className="mt-4 overflow-hidden rounded-lg border border-line bg-surface shadow-xs md:mt-6" aria-label="Items">
+      {!scope && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          {byBranch ? (
+            <span className="flex items-center gap-4 text-[13px] text-muted">
+              <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-xs bg-warning" />Below minimum</span>
+              <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-xs bg-error" />Out of stock</span>
+            </span>
+          ) : <span />}
+          <Segmented
+            label="Item view"
+            value={view}
+            onChange={(v) => (setView(v), setSelected([]), router.replace(v === "branch" ? "/inventory?view=branch" : "/inventory", { scroll: false }))}
+            options={[
+              { value: "items", label: "Items" },
+              { value: "branch", label: "Stock by branch" },
+            ]}
+          />
+        </div>
+      )}
+      <section className={cn("mt-4 overflow-hidden rounded-lg border border-line bg-surface shadow-xs", scope && "md:mt-6")} aria-label="Items">
         {selected.length > 0 ? (
           <div className="flex flex-wrap items-center gap-3 border-b border-primary/20 bg-primary-subtle/60 px-4 py-3">
             <p className="text-sm font-medium text-brand">{selected.length} selected</p>
@@ -188,14 +228,14 @@ export function ItemsList() {
           onSort={setSort}
           onRowClick={(i) => router.push(`/inventory/items/${i.id}`)}
           rowClassName={(i) => (!i.active ? "bg-subtle/70" : selected.includes(i.id) ? "bg-primary-subtle/40" : undefined)}
-          minWidth={scope ? 860 : 1040}
+          minWidth={scope ? 860 : byBranch ? 980 : 1040}
           empty="No items match these filters."
           columns={columns}
           mobileRow={(i) => (
             <MobileRow
               leading={<ItemTile />}
               title={i.name}
-              sub={`${i.sku} · ${scope ? stockSummary(i, scope).label : stockSummary(i).label}`}
+              sub={byBranch ? BRANCHES_4.map((b) => `${b.split(" ")[0]} ${i.stock[b] ?? "—"}`).join(" · ") : `${i.sku} · ${scope ? stockSummary(i, scope).label : stockSummary(i).label}`}
               value={<span className="tabular">{totalStock(i, scope)}</span>}
               valueSub={`$${num(i.price)}`}
             />

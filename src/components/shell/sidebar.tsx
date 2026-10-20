@@ -1,14 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronsUpDown, Ellipsis, Lock, LogOut, PanelLeftClose, PanelLeftOpen, UserRound, X } from "lucide-react";
+import { ChevronDown, ChevronsUpDown, Ellipsis, Lock, LogOut, PanelLeftClose, PanelLeftOpen, UserRound, X } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Logo } from "@/components/ui/logo";
 import { Menu } from "@/components/ui/menu";
 import { cn } from "@/lib/format";
 import { initials, useSession, type SessionUser } from "@/lib/session";
-import { groupsForRole, SETTINGS_ITEM, type NavItem } from "./nav";
+import { activeChild, childrenForRole, groupsForRole, SETTINGS_ITEM, type NavChild, type NavItem } from "./nav";
+import { useNavCounts } from "./nav-counts";
 
 /** Count badges next to nav items: open sign-offs (owner, sections 06/10) and tasks (Branch Manager, 05.3). */
 const BADGES: Record<"owner" | "manager", Record<string, number>> = {
@@ -32,6 +34,9 @@ export function Sidebar({
   const { user, signOut } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const counts = useNavCounts();
+  // Sections the user opened or closed by hand; otherwise a section is open while you are in it.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   if (!user) return null;
 
   const groups = groupsForRole(user.role);
@@ -104,17 +109,34 @@ export function Sidebar({
                 {group.locked && <Lock size={12} aria-hidden />}
               </p>
             )}
-            {group.items.map((item) => (
-              <NavLink
-                key={item.href}
-                item={item}
-                active={pathname === item.href || pathname.startsWith(`${item.href}/`)}
-                collapsed={collapsed}
-                locked={group.locked}
-                badge={badges[item.href]}
-                onNavigate={onClose}
-              />
-            ))}
+            {group.items.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const children = group.locked ? [] : childrenForRole(item, user.role);
+              return !collapsed && children.length > 1 ? (
+                <NavSection
+                  key={item.href}
+                  item={item}
+                  subItems={children}
+                  active={active}
+                  open={expanded[item.href] ?? active}
+                  onToggle={() => setExpanded((e) => ({ ...e, [item.href]: !(e[item.href] ?? active) }))}
+                  pathname={pathname}
+                  badge={badges[item.href]}
+                  counts={counts}
+                  onNavigate={onClose}
+                />
+              ) : (
+                <NavLink
+                  key={item.href}
+                  item={item}
+                  active={active}
+                  collapsed={collapsed}
+                  locked={group.locked}
+                  badge={badges[item.href]}
+                  onNavigate={onClose}
+                />
+              );
+            })}
           </div>
         ))}
       </div>
@@ -206,6 +228,86 @@ function NavLink({
       )}
       {!collapsed && locked && <Lock size={14} className="text-icon" aria-label="Owner only" />}
     </Link>
+  );
+}
+
+/** A nav item with sub-pages: the row toggles a dropdown listing them. */
+function NavSection({
+  item,
+  subItems,
+  active,
+  open,
+  onToggle,
+  pathname,
+  badge,
+  counts,
+  onNavigate,
+}: {
+  item: NavItem;
+  subItems: NavChild[];
+  active: boolean;
+  open: boolean;
+  onToggle: () => void;
+  pathname: string;
+  badge?: number;
+  counts: Record<string, number | undefined>;
+  onNavigate?: () => void;
+}) {
+  const Icon = item.icon;
+  const current = activeChild(subItems, pathname);
+  const listId = `nav-${item.href.slice(1)}`;
+  return (
+    <div className="flex flex-col">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={listId}
+        className={cn(
+          "focus-ring flex h-10 shrink-0 cursor-pointer items-center gap-3 rounded-md px-3 text-left text-sm leading-5 font-medium transition-colors",
+          active ? "text-brand" : "text-body",
+          "hover:bg-muted-bg",
+        )}
+      >
+        <Icon size={20} strokeWidth={1.75} className={active ? "text-brand" : "text-icon"} aria-hidden />
+        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+        {badge !== undefined && !open && (
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted-bg px-1.5 text-xs leading-4 font-medium text-body">
+            {badge}
+            <span className="sr-only"> open tasks</span>
+          </span>
+        )}
+        <ChevronDown size={16} className={cn("shrink-0 text-icon transition-transform", open && "rotate-180")} aria-hidden />
+      </button>
+      {open && (
+        <ul id={listId} className="mt-0.5 mb-1 ml-[21px] flex flex-col gap-0.5 border-l border-line pl-3">
+          {subItems.map((child) => {
+            const on = child === current;
+            const count = counts[child.href];
+            return (
+              <li key={child.href}>
+                <Link
+                  href={child.href}
+                  onClick={onNavigate}
+                  aria-current={on ? "page" : undefined}
+                  className={cn(
+                    "focus-ring flex h-8 items-center gap-2 rounded-md px-2.5 text-[13px] leading-[18px] transition-colors",
+                    on ? "bg-primary-subtle font-medium text-brand" : "text-body hover:bg-muted-bg",
+                  )}
+                >
+                  <span className="min-w-0 flex-1 truncate">{child.label}</span>
+                  {count !== undefined && (
+                    <span className={cn("inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs leading-4 font-medium", on ? "bg-surface text-brand" : "bg-muted-bg text-body")}>
+                      {count}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
 

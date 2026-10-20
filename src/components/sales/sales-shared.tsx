@@ -6,23 +6,17 @@ import { Mic, Plus, QrCode, ShoppingCart, Trash2 } from "lucide-react";
 import { AiBadge } from "@/components/finance/common";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
-import { LinkTabs, PageHeader } from "@/components/ui/page";
+import { PageHeader } from "@/components/ui/page";
 import { cn, fmtDate, money, num, type Currency } from "@/lib/format";
 import { docTotal, lineTotal } from "@/lib/mock/ops-data";
 import type { BranchName, Customer, DocLine } from "@/lib/mock/ops-types";
-import { invoiceStatus, useBranchScope, useOps } from "@/lib/ops-store";
+import { useBranchScope, useOps } from "@/lib/ops-store";
 import { useSession } from "@/lib/session";
 
 /** "Sales" header and tabs (section 09). */
 export function SalesHeader({ actions }: { actions?: React.ReactNode }) {
-  const { state } = useOps();
   const scope = useBranchScope();
   const router = useRouter();
-  const open = state.invoices.filter((i) => (!scope || i.branch === scope) && ["sent", "partial", "overdue"].includes(invoiceStatus(i))).length;
-  const openPlanned = state.planned.filter((p) => (!scope || p.branch === scope) && ["draft", "sent", "accepted"].includes(p.status)).length;
-  const pill = (n: number) => (
-    <span className="ml-1 inline-flex h-5 items-center rounded-full bg-muted-bg px-2 text-xs font-medium text-body">{n} open</span>
-  );
   return (
     <>
       <PageHeader
@@ -43,17 +37,6 @@ export function SalesHeader({ actions }: { actions?: React.ReactNode }) {
             </>
           )
         }
-      />
-      <LinkTabs
-        className="mt-6"
-        items={[
-          { href: "/sales", label: "Overview", exact: true },
-          { href: "/sales/walk-in", label: "Walk-in sales" },
-          { href: "/sales/invoices", label: <>Invoices{pill(open)}</> },
-          { href: "/sales/planned", label: <>Planned purchases{pill(openPlanned)}</> },
-          { href: "/sales/customers", label: "Customers" },
-          { href: "/sales/payments", label: "Payments" },
-        ]}
       />
     </>
   );

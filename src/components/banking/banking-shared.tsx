@@ -6,7 +6,7 @@ import { Building2, CloudUpload, Ellipsis, Lock, Plus } from "lucide-react";
 import { AccountAvatar, accountBalanceLines, accountKindLabel, StatusPill } from "@/components/finance/common";
 import { Button } from "@/components/ui/button";
 import { Menu } from "@/components/ui/menu";
-import { LinkTabs, PageHeader } from "@/components/ui/page";
+import { PageHeader } from "@/components/ui/page";
 import { useToast } from "@/components/ui/overlay";
 import { useFinance } from "@/lib/finance-store";
 import { cn } from "@/lib/format";
@@ -16,11 +16,8 @@ import { useSession } from "@/lib/session";
 /** "Banking" page header and tab bar shared by the four Banking tabs. */
 export function BankingHeader({ onAdd }: { onAdd?: () => void }) {
   const { user } = useSession();
-  const { state } = useFinance();
   const router = useRouter();
   const isManager = user?.role === "manager";
-  const active = state.accounts.filter((account) => account.status === "active").length;
-  const uncategorised = state.uncategorised.filter((line) => !line.accepted).length;
   return (
     <>
       <PageHeader
@@ -46,15 +43,6 @@ export function BankingHeader({ onAdd }: { onAdd?: () => void }) {
             )}
           </>
         }
-      />
-      <LinkTabs
-        className="mt-6"
-        items={[
-          { href: "/banking", label: "Overview", exact: true },
-          { href: "/banking/accounts", label: "Accounts", count: active, exact: true },
-          { href: "/banking/uncategorised", label: "Uncategorised", count: uncategorised },
-          { href: "/banking/imports", label: "Import history" },
-        ]}
       />
     </>
   );

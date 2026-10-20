@@ -7,7 +7,6 @@ import { TaskProgress } from "@/components/hairline/task-progress";
 import { buildReport, GENERATE_STEP_LABELS, type MonthId } from "@/lib/mock/reports-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LinkTabs } from "@/components/ui/page";
 import { cn, num } from "@/lib/format";
 import type { Kpi, ReportStatus } from "@/lib/mock/reports-data";
 
@@ -135,13 +134,11 @@ export function GeneratingCard({ id, step, startedAt, onCancel, onOpen }: { id: 
 export function ReportsHeader({
   isManager,
   branch,
-  count,
   generating,
   onGenerate,
 }: {
   isManager: boolean;
   branch?: string;
-  count: number;
   generating: boolean;
   onGenerate: () => void;
 }) {
@@ -172,15 +169,6 @@ export function ReportsHeader({
           </Button>
         )}
       </header>
-      {!isManager && (
-        <LinkTabs
-          className="mt-5"
-          items={[
-            { label: "Overview", href: "/monthly-reports", exact: true },
-            { label: "All reports", href: "/monthly-reports/all", count },
-          ]}
-        />
-      )}
     </>
   );
 }

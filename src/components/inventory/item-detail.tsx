@@ -102,7 +102,7 @@ export function ItemDetail() {
               triggerClassName="inline-flex size-10 items-center justify-center rounded-md border border-line-strong bg-surface text-icon-strong hover:bg-subtle"
               trigger={<Ellipsis size={18} aria-hidden />}
               items={[
-                { id: "moves", label: "Movement history", onSelect: () => router.push(`/inventory/movements?item=${id}`) },
+                { id: "moves", label: "Movement history", onSelect: () => router.push(`/inventory/adjustments?view=movements&item=${id}`) },
                 { id: "sales", label: "Item sales", onSelect: () => router.push(`/inventory/sales?item=${id}`) },
                 ...(scope
                   ? []
@@ -132,7 +132,7 @@ export function ItemDetail() {
       <div className="mt-4 grid gap-4 md:mt-6 md:gap-6 xl:grid-cols-[minmax(0,1fr)_352px]">
         <div className="flex min-w-0 flex-col gap-4 md:gap-6">
           <Card aria-labelledby="by-branch-title">
-            <CardHeader title={scope ? "Stock here" : "Stock by branch"} titleId="by-branch-title" subtitle={`Minimum stock is ${item.min[branches[0]] ?? 0} ${units} per branch`} actions={!scope && <CardLink href="/inventory/stock">Open stock by branch</CardLink>} />
+            <CardHeader title={scope ? "Stock here" : "Stock by branch"} titleId="by-branch-title" subtitle={`Minimum stock is ${item.min[branches[0]] ?? 0} ${units} per branch`} actions={!scope && <CardLink href="/inventory?view=branch">Open stock by branch</CardLink>} />
             <ul className="flex flex-col gap-3.5 p-5">
               {branches.map((b) => {
                 const qty = item.stock[b] ?? 0;
@@ -227,7 +227,7 @@ export function ItemDetail() {
       </div>
 
       <Card className="mt-4 overflow-hidden md:mt-6" aria-labelledby="latest-moves-title">
-        <CardHeader title="Latest stock movements" titleId="latest-moves-title" divided actions={<CardLink href={`/inventory/movements?item=${id}`}>View all movements</CardLink>} />
+        <CardHeader title="Latest stock movements" titleId="latest-moves-title" divided actions={<CardLink href={`/inventory/adjustments?view=movements&item=${id}`}>View all movements</CardLink>} />
         <MovesTable moves={moves.slice(0, 4)} showItem={false} />
       </Card>
     </Page>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { SelectField, TextAreaField } from "@/components/ui/fields";
 import { ModalBody, ModalFooter, ModalHeader, useToast } from "@/components/ui/overlay";
-import { LinkTabs, PageHeader } from "@/components/ui/page";
+import { PageHeader } from "@/components/ui/page";
 import { cn } from "@/lib/format";
 import { BRANCHES_4, type BranchName, type Item } from "@/lib/mock/ops-types";
 import { branchLevel, moveStock, nowStamp, plural, unitLabel, useBranchScope, useOps } from "@/lib/ops-store";
@@ -24,10 +24,8 @@ export function ItemTile({ size = 36 }: { size?: 36 | 48 }) {
 
 /** Header and tab bar for Items & Inventory (section 08). `actions` overrides the default buttons. */
 export function InventoryHeader({ actions }: { actions?: React.ReactNode }) {
-  const { state } = useOps();
   const scope = useBranchScope();
   const router = useRouter();
-  const count = state.items.filter((i) => (scope ? i.active && i.stock[scope] !== undefined : true)).length;
   return (
     <>
       <PageHeader
@@ -53,16 +51,6 @@ export function InventoryHeader({ actions }: { actions?: React.ReactNode }) {
             </>
           ))
         }
-      />
-      <LinkTabs
-        className="mt-6"
-        items={[
-          { href: "/inventory", label: "Items", count, exact: true },
-          ...(scope ? [] : [{ href: "/inventory/stock", label: "Stock by branch" }]),
-          { href: "/inventory/sales", label: "Item sales" },
-          { href: "/inventory/adjustments", label: "Adjustments" },
-          { href: "/inventory/movements", label: "Movement history" },
-        ]}
       />
     </>
   );

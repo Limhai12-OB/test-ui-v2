@@ -123,7 +123,7 @@ const R = {
   ageing: { id: "ageing", kind: "report", label: "Receivables ageing · 31 Oct 2026", href: "/sales/invoices", title: "Receivables ageing · 31 Oct 2026", sub: "Report used for the total of $3,150.00" },
   tkOct: { id: "tk-oct", kind: "branch", label: "Toul Kork · Oct 2026", href: "/branches/toul-kork", title: "Toul Kork · Oct 2026", sub: "Branch revenue, expenses and profit" },
   tkTx118: { id: "tk-118", kind: "transactions", label: "118 branch transactions", href: "/financial-records/transactions", title: "118 branch transactions", sub: "Toul Kork lines for October 2026" },
-  stock: { id: "stock", kind: "report", label: "Stock levels · 31 Oct 2026", href: "/inventory/stock", title: "Stock levels · 31 Oct 2026", sub: "On hand and reorder points by branch" },
+  stock: { id: "stock", kind: "report", label: "Stock levels · 31 Oct 2026", href: "/inventory?view=branch", title: "Stock levels · 31 Oct 2026", sub: "On hand and reorder points by branch" },
   sales: { id: "sales", kind: "report", label: "Sales by item · Oct 2026", href: "/inventory/sales", title: "Sales by item · Oct 2026", sub: "Units and revenue for each item" },
   payments: { id: "payments", kind: "report", label: "Customer payments · Jun–Oct 2026", href: "/sales/payments", title: "Customer payments", sub: "Days from due date to payment, last 5 months" },
   walkIns: { id: "walk-ins", kind: "transactions", label: "1,214 walk-in sales", href: "/sales/walk-in", title: "1,214 walk-in sales", sub: "Toul Kork, October 2026" },
@@ -448,7 +448,7 @@ const ANSWERS: Answer[] = [
     records: [R.stock],
     followUps: ["Best sellers in October"],
     steps: allSteps("stock levels for 214 items"),
-    fallback: { label: "View stock instead", href: "/inventory/stock" },
+    fallback: { label: "View stock instead", href: "/inventory?view=branch" },
     disclaimer: DISCLAIMER,
   },
 
@@ -515,7 +515,7 @@ const ANSWERS: Answer[] = [
     records: [{ ...R.stock, label: "កម្រិតស្តុក · 31 តុលា 2026" }],
     followUps: ["ខែនេះអាជីវកម្មរបស់ខ្ញុំចំណេញប៉ុន្មាន?"],
     steps: ["បានយល់សំណួរ", "បានអានស្តុកទំនិញ 214", "កំពុងប្រៀបធៀបជាមួយកម្រិតបញ្ជាទិញ"],
-    fallback: { label: "មើលស្តុក", href: "/inventory/stock" },
+    fallback: { label: "មើលស្តុក", href: "/inventory?view=branch" },
     disclaimer: DISCLAIMER,
   },
 
@@ -648,7 +648,7 @@ const ANSWERS: Answer[] = [
     records: [R.stock],
     followUps: ["How much did my branch sell this month?"],
     steps: allSteps("stock at Toul Kork"),
-    fallback: { label: "View stock instead", href: "/inventory/stock" },
+    fallback: { label: "View stock instead", href: "/inventory?view=branch" },
     disclaimer: DISCLAIMER,
   },
   {
@@ -670,7 +670,7 @@ const ANSWERS: Answer[] = [
     records: [{ ...R.stock, label: "កម្រិតស្តុក · 31 តុលា 2026" }],
     followUps: ["ខែនេះសាខារបស់ខ្ញុំចំណេញប៉ុន្មាន?"],
     steps: ["បានយល់សំណួរ", "បានអានស្តុកនៅសាខាទួលគោក", "កំពុងប្រៀបធៀបជាមួយកម្រិតបញ្ជាទិញ"],
-    fallback: { label: "មើលស្តុក", href: "/inventory/stock" },
+    fallback: { label: "មើលស្តុក", href: "/inventory?view=branch" },
     disclaimer: DISCLAIMER,
   },
 ];

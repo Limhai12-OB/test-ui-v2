@@ -1,13 +1,6 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { StockByBranch } from "@/components/inventory/inventory-tabs";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Stock by branch · FinanceSight" };
-
+// Stock by branch now lives in the Items tab as the "Stock by branch" view.
 export default function Page() {
-  return (
-    <Suspense>
-      <StockByBranch />
-    </Suspense>
-  );
+  redirect("/inventory?view=branch");
 }

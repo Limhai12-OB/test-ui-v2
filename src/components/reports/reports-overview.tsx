@@ -39,7 +39,7 @@ export function ReportsOverview() {
 
   return (
     <Page>
-      <ReportsHeader isManager={false} count={reports.available.length} generating={Boolean(reports.generating)} onGenerate={() => setGenerate(true)} />
+      <ReportsHeader isManager={false} generating={Boolean(reports.generating)} onGenerate={() => setGenerate(true)} />
 
       <div className="mt-6 flex flex-col gap-6">
         {oct.state === "none" && (

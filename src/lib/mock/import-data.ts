@@ -81,7 +81,7 @@ const DESIGNED_HISTORY: HistoryRow[] = [
   { id: "h-28", at: "31 Oct 2026, 16:58", type: "Bank statement", file: "Wing_statement_Oct.csv", rows: 96, note: "96 imported · 3 need review", status: "review", by: "Dara Sok", branch: "Toul Kork", href: "/banking/imports" },
   { id: "h-27", at: "27 Oct 2026, 16:31", type: "Bills", file: "EDC_bill_scan.pdf", rows: 1, note: "Could not read the scan", status: "failed", by: "Sokha Chan", branch: "Toul Kork" },
   { id: "h-26", at: "22 Oct 2026, 08:40", type: "Sales", file: "TK_walkin_sales_wk42.xlsx", rows: 312, note: "312 imported", status: "completed", by: "Dara Sok", branch: "Toul Kork", href: "/sales/walk-in" },
-  { id: "h-25", at: "9 Oct 2026, 12:15", type: "Stock count", file: "TK_stock_count_Oct.xlsx", rows: 64, note: "61 imported · 3 skipped", status: "completed", by: "Dara Sok", branch: "Toul Kork", href: "/inventory/stock" },
+  { id: "h-25", at: "9 Oct 2026, 12:15", type: "Stock count", file: "TK_stock_count_Oct.xlsx", rows: 64, note: "61 imported · 3 skipped", status: "completed", by: "Dara Sok", branch: "Toul Kork", href: "/inventory?view=branch" },
 ];
 
 const MANAGER_EXTRA: HistoryRow[] = [

@@ -3,98 +3,19 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, Info, Plug, ShoppingCart, TrendingUp, Trophy } from "lucide-react";
+import { Info, Plug, ShoppingCart, TrendingUp, Trophy } from "lucide-react";
 import { StatusPill } from "@/components/finance/common";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/flow";
 import { DataTable, MobileRow, TwoLine, type SortState } from "@/components/ui/data-table";
 import { FilterBar, FilterMenu, Pagination, paginate, SearchInput } from "@/components/ui/filters";
 import { Notice, Page } from "@/components/ui/page";
 import { Delta, StatCard } from "@/components/ui/stat";
 import { cn, downloadCsv, fmtDate, money, num } from "@/lib/format";
-import { BRANCHES_4, type Adjustment, type BranchName, type Item, type SaleLine } from "@/lib/mock/ops-types";
-import { branchLevel, plural, totalStock, useBranchScope, useOps } from "@/lib/ops-store";
-import { AdjustButton, InventoryHeader, ItemTile } from "./inventory-shared";
+import { BRANCHES_4, type Adjustment, type SaleLine } from "@/lib/mock/ops-types";
+import { plural, useBranchScope, useOps } from "@/lib/ops-store";
+import { AdjustButton, InventoryHeader } from "./inventory-shared";
 import { fmtStamp, MOVE_KIND, MovesTable } from "./item-detail";
-
-/** Frame 08.6 "Stock by Branch". */
-export function StockByBranch() {
-  const { state } = useOps();
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
-  const [show, setShow] = useState<string | null>("low");
-  const [sort, setSort] = useState<SortState>({ key: "item", dir: "asc" });
-  const items = state.items.filter((i) => i.active);
-  const rows = items
-    .filter(
-      (i) =>
-        (!query || `${i.name} ${i.sku}`.toLowerCase().includes(query.toLowerCase())) &&
-        (!category || i.category === category) &&
-        (show !== "low" || BRANCHES_4.some((b) => ["low", "out"].includes(branchLevel(i, b) ?? ""))),
-    )
-    .sort((a, b) => a.name.localeCompare(b.name) * (sort.dir === "asc" ? 1 : -1));
-  const summary = (b: BranchName) => {
-    const low = items.filter((i) => branchLevel(i, b) === "low").length;
-    const out = items.filter((i) => branchLevel(i, b) === "out").length;
-    return out ? { label: `${out} out`, tone: "error" as const } : low ? { label: `${low} low`, tone: "warning" as const } : { label: "All in stock", tone: "success" as const };
-  };
-  const cell = (i: Item, b: BranchName) => {
-    const level = branchLevel(i, b);
-    if (!level) return <span className="text-muted">—</span>;
-    return <span className={cn("tabular", level === "in" ? "text-fg" : level === "low" ? "text-warning-fg" : "text-error-fg")}>{i.stock[b]}</span>;
-  };
-  return (
-    <Page>
-      <InventoryHeader />
-      <div className="mt-6 grid grid-cols-2 gap-4 md:gap-6 xl:grid-cols-4">
-        {BRANCHES_4.map((b) => {
-          const s = summary(b);
-          return (
-            <button key={b} type="button" onClick={() => setShow(s.tone === "success" ? null : "low")} className="focus-ring flex cursor-pointer flex-col items-start gap-2 rounded-lg border border-line bg-surface p-5 text-left shadow-xs hover:border-line-strong">
-              <span className="flex items-center gap-2 text-[15px] font-semibold text-fg">
-                <Building2 size={18} className="text-icon" aria-hidden />
-                {b}
-              </span>
-              <StatusPill tone={s.tone}>{s.label}</StatusPill>
-            </button>
-          );
-        })}
-      </div>
-      <section className="mt-6 overflow-hidden rounded-lg border border-line bg-surface shadow-xs" aria-label="Stock by branch">
-        <FilterBar
-          className="border-b border-line"
-          onExport={() => downloadCsv("stock-by-branch.csv", [["Item", "SKU", "Minimum", ...BRANCHES_4, "Total"], ...rows.map((i) => [i.name, i.sku, i.min["Central Market"] ?? "", ...BRANCHES_4.map((b) => i.stock[b] ?? ""), totalStock(i)])])}
-        >
-          <SearchInput value={query} onChange={setQuery} placeholder="Search by name or SKU" />
-          <FilterMenu label="Category" value={category} onChange={setCategory} options={[...new Set(items.map((i) => i.category))].sort().map((c) => ({ value: c, label: c }))} />
-          <FilterMenu label="Show" value={show} onChange={setShow} width={240} options={[{ value: "low", label: "Low or out of stock" }]} />
-          <span className="flex items-center gap-4 text-[13px] text-muted md:ml-auto">
-            <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-xs bg-warning" />Below minimum</span>
-            <span className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-xs bg-error" />Out of stock</span>
-          </span>
-        </FilterBar>
-        <DataTable
-          caption="Stock by branch"
-          rows={rows}
-          rowKey={(i) => i.id}
-          sort={sort}
-          sortable={["item"]}
-          onSort={setSort}
-          minWidth={980}
-          empty="No items match these filters."
-          columns={[
-            { key: "item", header: "Item", cell: (i) => (<div className="flex items-center gap-3"><ItemTile /><TwoLine title={<Link href={`/inventory/items/${i.id}`} className="hover:underline">{i.name}</Link>} titleClassName="font-normal" sub={i.sku} /></div>) },
-            { key: "min", header: "Minimum", align: "right", width: "90px", cell: (i) => <span className="tabular text-muted">{i.min["Central Market"] ?? Object.values(i.min)[0]}</span> },
-            ...BRANCHES_4.map((b) => ({ key: b, header: b, align: "right" as const, width: "130px", cell: (i: Item) => cell(i, b) })),
-            { key: "total", header: "Total", align: "right", width: "90px", cell: (i) => <span className="tabular text-fg">{totalStock(i)}</span> },
-            { key: "adjust", header: "Adjust", srHeader: true, width: "80px", cell: (i) => <span className="block text-right"><AdjustButton link label="Adjust" itemId={i.id} branch={BRANCHES_4.find((b) => ["low", "out"].includes(branchLevel(i, b) ?? ""))} /></span> },
-          ]}
-          mobileRow={(i) => <MobileRow leading={<ItemTile />} title={i.name} sub={BRANCHES_4.map((b) => `${b.split(" ")[0]} ${i.stock[b] ?? "—"}`).join(" · ")} value={<span className="tabular">{totalStock(i)}</span>} />}
-        />
-        <Pagination page={1} pageSize={10} total={rows.length} noun="items" onPage={() => {}} />
-      </section>
-    </Page>
-  );
-}
 
 const SOURCE = { invoice: { label: "Invoice", tone: "info" as const }, "walk-in": { label: "Walk-in", tone: "sky" as const }, shopify: { label: "Shopify", tone: "success" as const } };
 
@@ -187,8 +108,32 @@ export function ItemSales() {
 
 const ADJ = { increase: { label: "Increase", tone: "success" as const }, decrease: { label: "Decrease", tone: "warning" as const }, correction: { label: "Correction", tone: "info" as const } };
 
-/** Frame 08.8 "Item Adjustments". */
+/** Frames 08.8 "Item Adjustments" and 08.9 "Stock Movement History", merged into one tab. */
 export function Adjustments() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const [view, setView] = useState<"adjustments" | "movements">(params.get("view") === "movements" || params.get("item") ? "movements" : "adjustments");
+  const switchTo = (v: typeof view) => (setView(v), router.replace(v === "movements" ? "/inventory/adjustments?view=movements" : "/inventory/adjustments", { scroll: false }));
+  return (
+    <Page>
+      <InventoryHeader actions={<AdjustButton />} />
+      <div className="mt-6 flex justify-end">
+        <Segmented
+          label="History view"
+          value={view}
+          onChange={switchTo}
+          options={[
+            { value: "adjustments", label: "Adjustments" },
+            { value: "movements", label: "All movements" },
+          ]}
+        />
+      </div>
+      {view === "adjustments" ? <AdjustmentList /> : <MovementList initialItem={params.get("item")} />}
+    </Page>
+  );
+}
+
+function AdjustmentList() {
   const { state } = useOps();
   const scope = useBranchScope();
   const [query, setQuery] = useState("");
@@ -207,9 +152,8 @@ export function Adjustments() {
   );
   const { current, slice } = paginate(rows, page, 6);
   return (
-    <Page>
-      <InventoryHeader actions={<AdjustButton />} />
-      <section className="mt-6 overflow-hidden rounded-lg border border-line bg-surface shadow-xs" aria-label="Adjustments">
+    <>
+      <section className="mt-4 overflow-hidden rounded-lg border border-line bg-surface shadow-xs" aria-label="Adjustments">
         <FilterBar className="border-b border-line" onExport={() => downloadCsv("adjustments.csv", [["Date and time", "Item", "Type", "Quantity", "Branch", "Reason", "Notes", "Adjusted by"], ...rows.map((a) => [a.at, itemOf(a.itemId).name, ADJ[a.kind].label, a.change, a.branch, a.reason, a.notes, a.by])])}>
           <SearchInput value={query} onChange={setQuery} placeholder="Search item or reason" />
           <FilterMenu label="Date" icon="calendar" value={month} onChange={setMonth} options={[{ value: "2026-10", label: "October 2026" }]} />
@@ -238,17 +182,16 @@ export function Adjustments() {
       <Notice tone="info" className="mt-6" icon={<Info size={18} aria-hidden />} title="Adjustments keep a full history">
         Each adjustment records who made it, when and why. Decreases above the branch limit notify the Business Owner.
       </Notice>
-    </Page>
+    </>
   );
 }
 
-/** Frame 08.9 "Stock Movement History". */
-export function Movements() {
+/** Every stock change (sales, adjustments, initial stock) with its running balance. */
+function MovementList({ initialItem }: { initialItem: string | null }) {
   const { state } = useOps();
   const scope = useBranchScope();
-  const params = useSearchParams();
   const [query, setQuery] = useState("");
-  const [itemId, setItemId] = useState<string | null>(params.get("item") ?? "angkor-beer");
+  const [itemId, setItemId] = useState<string | null>(initialItem);
   const [branch, setBranch] = useState<string | null>(null);
   const [kind, setKind] = useState<string | null>(null);
   const [month, setMonth] = useState<string | null>("2026-10");
@@ -264,9 +207,8 @@ export function Movements() {
   );
   const { current, slice } = paginate(rows, page, 9);
   return (
-    <Page>
-      <InventoryHeader />
-      <section className="mt-6 overflow-hidden rounded-lg border border-line bg-surface shadow-xs" aria-label="Stock movements">
+    <>
+      <section className="mt-4 overflow-hidden rounded-lg border border-line bg-surface shadow-xs" aria-label="Stock movements">
         <FilterBar className="border-b border-line" onExport={() => downloadCsv("stock-movements.csv", [["Date and time", "Item", "Movement", "Change", "Balance after", "Branch", "Reference or reason", "By"], ...rows.map((m) => [m.at, state.items.find((i) => i.id === m.itemId)?.name ?? "", MOVE_KIND[m.kind].label, m.change, m.balance, m.branch, m.ref, m.by])])}>
           <SearchInput value={query} onChange={setQuery} placeholder="Search reference or reason" />
           <FilterMenu label="Item" value={itemId} onChange={(v) => (setItemId(v), setPage(1))} width={260} options={state.items.map((i) => ({ value: i.id, label: i.name }))} />
@@ -280,6 +222,6 @@ export function Movements() {
       <Notice tone="info" className="mt-6" icon={<Info size={18} aria-hidden />} title="Movements cannot be edited or deleted">
         To fix a mistake, add a correcting adjustment. This keeps stock history complete for audits.
       </Notice>
-    </Page>
+    </>
   );
 }
